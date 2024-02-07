@@ -1,5 +1,6 @@
 # Importando as bibliotecas necessárias
-from http.client import HTTPResponse
+from django.http import HttpResponse, JsonResponse
+from django.core import serializers
 from django.shortcuts import render
 import pandas as pd
 import os
@@ -54,3 +55,31 @@ def Import_Excel_pandas(request):
         })   
     # Se a requisição não for do tipo POST ou não tiver um arquivo, renderiza a página 'Import_excel_db.html' sem a URL do arquivo
     return render(request, 'Import_excel_db.html',{})
+
+def get_tickets(request):
+    if request.method == 'GET':
+        # Obtém todos os tickets do banco de dados
+        tickets = Ticket.objects.all()
+        # Prepara uma lista para armazenar os dados dos tickets
+        tickets_list = []
+        # Itera sobre cada ticket
+        for ticket in tickets:
+            # Obtém as filas associadas ao ticket
+            filas = ticket.filas.all()
+            # Prepara uma lista para armazenar os dados das filas
+            filas_list = []
+            # Itera sobre cada fila
+            for fila in filas:
+                # Adiciona os detalhes da fila à lista de filas
+                filas_list.append({
+                    'nome': fila.nome,
+                    'entrada': fila.entrada,
+                    'saida': fila.saida
+                })
+            # Adiciona os detalhes do ticket e das filas associadas à lista de tickets
+            tickets_list.append({
+                'ticket': ticket.ticket,
+                'filas': filas_list
+            })
+        # Retorna os tickets e as filas associadas como uma resposta HTTP
+        return JsonResponse(tickets_list, safe=False)
