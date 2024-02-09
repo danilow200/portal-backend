@@ -31,14 +31,17 @@ def Import_Excel_pandas(request):
                                 entrada=convert_date(row['Tarefas do Incidente - ITSM.Entrou na fila em']), 
                                 saida=convert_date(row['Tarefas do Incidente - ITSM.Tarefa executada em']))           
                 fila.save()
-                if fila.nome in lista_de_filas:
-                    ticket, created = Ticket.objects.get_or_create(ticket=row['Incidente - ITSM.Número do incidente'], estacao=row['Incidente - ITSM.Localização'], descricao=row['Incidente - ITSM.Causa'], prioridade=row['Incidente - ITSM.Prioridade'], sla=row['Incidente - ITSM.Prazo do SLA no formato H:MM'], atendimento=row['Incidente - ITSM.Tempo total no formato H:MM:SS'], categoria=row['Incidente - ITSM.Categoria de Atuação'])
-                    ticket.filas.add(fila)
+                ticket, created = Ticket.objects.get_or_create(ticket=row['Incidente - ITSM.Número do incidente'], estacao=row['Incidente - ITSM.Localização'], descricao=row['Incidente - ITSM.Causa'], prioridade=row['Incidente - ITSM.Prioridade'], sla=row['Incidente - ITSM.Prazo do SLA no formato H:MM'], atendimento=row['Incidente - ITSM.Tempo total no formato H:MM:SS'], categoria=row['Incidente - ITSM.Categoria de Atuação'])
+                ticket.filas.add(fila)
+                if any(f.nome in lista_de_filas for f in ticket.filas.all()):
                     ticket.save()
+                else:
+                    ticket.delete()
         return render(request, 'Import_excel_db.html', {
             'uploaded_file_url': uploaded_file_url
         })   
     return render(request, 'Import_excel_db.html',{})
+
 
 def get_tickets(request):
     if request.method == 'GET':
