@@ -14,46 +14,30 @@ def convert_date(date_string):
   hour, minute, second = time.split(':')
   return f'{year}-{month}-{day}T{hour}:{minute}:{second}.000Z'
 
-# Função de view para importar um arquivo Excel
 def Import_Excel_pandas(request):
-    # Verifica se a requisição é do tipo POST e se um arquivo foi enviado
     if request.method == 'POST' and request.FILES['myfile']: 
-
-        # Lista de grupos de execução
         lista_de_filas = ['Campo Infraestrutura', 'Campo Despacho', 'Campo DWDM', 'GMP', 
                           'Campo Sobressalente', 'Campo IP Core', 'Campo Ip Metro', 'Campo Fibra']
-
-        # Obtém o arquivo enviado na requisição
         myfile = request.FILES['myfile']
         fs = FileSystemStorage()
-        # Salva o arquivo no sistema de arquivos
         filename = fs.save(myfile.name, myfile)
         uploaded_file_url = fs.url(filename)              
-        # Lê o arquivo em um DataFrame do pandas
         empexceldata = pd.read_csv(filename, encoding='ISO-8859-1', index_col=False)
-        # Filtra o DataFrame para remover linhas onde o número do incidente é um espaço em branco
         empexceldata = empexceldata.loc[empexceldata['Incidente - ITSM.Número do incidente'] != ' ']
         dbframe = empexceldata
-        # Itera sobre cada linha do DataFrame
         for index, row in dbframe.iterrows():
-            # Se o número do incidente pai for um espaço em branco e o grupo executor estiver na lista_de_filas
             if row['Incidente - ITSM.Número do incidente do pai'] == ' ':
-                if row['Tarefas do Incidente - ITSM.Grupo executor'] in lista_de_filas:
-                    # Cria um novo objeto Fila e salva no banco de dados
-                    fila = Fila.objects.create(nome=row['Tarefas do Incidente - ITSM.Grupo executor'],
-                                    entrada=convert_date(row['Tarefas do Incidente - ITSM.Entrou na fila em']), 
-                                    saida=convert_date(row['Tarefas do Incidente - ITSM.Tarefa executada em']))           
-                    fila.save()
-                    # Obtém ou cria um novo objeto Ticket e adiciona a Fila a ele
-                    ticket, created = Ticket.objects.get_or_create(ticket=row['Incidente - ITSM.Número do incidente'])
+                fila = Fila.objects.create(nome=row['Tarefas do Incidente - ITSM.Grupo executor'],
+                                entrada=convert_date(row['Tarefas do Incidente - ITSM.Entrou na fila em']), 
+                                saida=convert_date(row['Tarefas do Incidente - ITSM.Tarefa executada em']))           
+                fila.save()
+                if fila.nome in lista_de_filas:
+                    ticket, created = Ticket.objects.get_or_create(ticket=row['Incidente - ITSM.Número do incidente'], estacao=row['Incidente - ITSM.Localização'], descricao=row['Incidente - ITSM.Causa'], prioridade=row['Incidente - ITSM.Prioridade'], sla=row['Incidente - ITSM.Prazo do SLA no formato H:MM'], atendimento=row['Incidente - ITSM.Tempo total no formato H:MM:SS'], categoria=row['Incidente - ITSM.Categoria de Atuação'])
                     ticket.filas.add(fila)
                     ticket.save()
-            
-        # Renderiza a página 'Import_excel_db.html' com a URL do arquivo enviado
         return render(request, 'Import_excel_db.html', {
             'uploaded_file_url': uploaded_file_url
         })   
-    # Se a requisição não for do tipo POST ou não tiver um arquivo, renderiza a página 'Import_excel_db.html' sem a URL do arquivo
     return render(request, 'Import_excel_db.html',{})
 
 def get_tickets(request):
@@ -68,7 +52,6 @@ def get_tickets(request):
             filas = ticket.filas.all()
             # Prepara uma lista para armazenar os dados das filas
             filas_list = []
-            # Itera sobre cada fila
             for fila in filas:
                 # Adiciona os detalhes da fila à lista de filas
                 filas_list.append({
@@ -79,6 +62,12 @@ def get_tickets(request):
             # Adiciona os detalhes do ticket e das filas associadas à lista de tickets
             tickets_list.append({
                 'ticket': ticket.ticket,
+                'estacao': ticket.estacao,
+                'descricao': ticket.descricao,
+                'prioridade': ticket.prioridade,
+                'sla': ticket.sla,
+                'atendimento': ticket.atendimento,
+                'categoria': ticket.categoria,
                 'filas': filas_list
             })
         # Retorna os tickets e as filas associadas como uma resposta HTTP
