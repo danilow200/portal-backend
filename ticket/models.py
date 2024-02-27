@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from django.db import models
+from django.utils import timezone
 
 CATEGORIAS = (
     ('DWDM', 'DWDM'),
@@ -38,6 +39,14 @@ class Ticket(models.Model):
   filas = models.ManyToManyField(Fila)
 
   def __str__(self):
-      return self.fila.nome
+      return str(self.ticket)
+
+class Desconto(models.Model):
+  inicio = models.DateTimeField(default=timezone.now)
+  fim = models.DateTimeField(default=timezone.now)
+  ticket = models.ForeignKey('Ticket', related_name='descontos', on_delete=models.CASCADE)
+
+  def __str__(self):
+     return str(self.fim - self.inicio)
 
   objects = models.Manager()
