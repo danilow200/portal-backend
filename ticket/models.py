@@ -49,12 +49,20 @@ class Ticket(models.Model):
      self.ultimo_desconto_aplicado = desconto
      self.atendimento = self.atendimento_descontado(desconto)
      self.save()
+
+  def reverter_desconto(self, desconto):
+     h, m, s = map(int, self.atendimento.split(':'))
+     atendimento_timedelta = timedelta(hours=h, minutes=m, seconds=s)
+
+     self.atendimento = str(atendimento_timedelta + desconto)
+     self.save()
   
   def atendimento_descontado(self, desconto):
     h, m, s = map(int, self.atendimento.split(':'))
     atendimento_timedelta = timedelta(hours=h, minutes=m, seconds=s)
     
     return str(atendimento_timedelta - desconto)
+  
 
 class Desconto(models.Model):
   inicio = models.DateTimeField(default=timezone.now)
@@ -68,6 +76,12 @@ class Desconto(models.Model):
 
     # Atualiza o campo atendimento do Ticket com o tempo de atendimento descontado
     self.ticket.aplicar_desconto(desconto)
+
+  def delete(self, *args, **kwargs):
+     desconto = self.fim - self.inicio
+     self.ticket.reverter_desconto(desconto)
+
+     super().delete(*args, **kwargs)
 
   def __str__(self):
      return str(self.fim - self.inicio)
