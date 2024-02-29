@@ -5,7 +5,8 @@ from django.shortcuts import render
 import pandas as pd
 import os
 from django.core.files.storage import FileSystemStorage
-from .models import Ticket, Fila
+from .models import Ticket, Fila, Desconto
+from django.shortcuts import get_object_or_404
 
 # Função para converter uma string de data e hora para o formato ISO 8601
 def convert_date(date_string):
@@ -75,3 +76,9 @@ def get_tickets(request):
             })
         # Retorna os tickets e as filas associadas como uma resposta HTTP
         return JsonResponse(tickets_list, safe=False)
+    
+# def create_desconto(request, ticket_id):
+#     ticket = get_object_or_404(Ticket, pk=ticket_id)
+#     ticket.atendimento = ticket.atendimento_descontado()
+#     print(ticket.atendimento)
+#     # ticket.save()
