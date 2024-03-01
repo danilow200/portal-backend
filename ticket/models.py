@@ -23,6 +23,12 @@ PRIORIDADES = (
     ('BAIXA', 'Baixa'),
 )
 
+STATUS = (
+    ('VIOLADO', 'Violado'),
+    ('NÃO VIOLADO', 'Não Violado'),
+    ('DESCONTO MAIOR QUE PERÍODO', 'Desconto maior que período'),
+    # Adicione mais status conforme necessário
+)
 
 class Fila(models.Model):
     nome = models.CharField(max_length=200)
@@ -41,6 +47,7 @@ class Ticket(models.Model):
     sla = models.CharField(max_length=50)
     atendimento = models.CharField(max_length=50)
     categoria = models.CharField(max_length=50, choices=CATEGORIAS)
+    status = models.CharField(max_length=50, choices=STATUS, default='ABERTO')
     filas = models.ManyToManyField(Fila)
     ultimo_desconto_aplicado = models.DurationField(default=timedelta)
 
@@ -52,6 +59,8 @@ class Ticket(models.Model):
         atendimento_timedelta = timedelta(hours=h, minutes=m, seconds=s)
 
         if desconto > atendimento_timedelta:
+            self.status = 'DESCONTO MAIOR QUE PERÍODO'
+            self.save()
             return
 
         self.ultimo_desconto_aplicado = desconto
