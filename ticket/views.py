@@ -29,12 +29,10 @@ def Import_Excel_pandas(request):
         fs = FileSystemStorage()
         filename = fs.save(myfile.name, myfile)
         uploaded_file_url = fs.url(filename)              
+
         empexceldata = pd.read_csv(filename, encoding='ISO-8859-1', index_col=False)
         empexceldata = empexceldata.loc[empexceldata['Incidente - ITSM.Número do incidente'] != ' ']
         dbframe = empexceldata
-
-        filas_to_create = []
-        tickets_to_create = []
 
         for index, row in dbframe.iterrows():
             if row['Incidente - ITSM.Número do incidente do pai'] == ' ':
@@ -48,14 +46,10 @@ def Import_Excel_pandas(request):
                     ticket.save()  # Salve o objeto Ticket antes de adicionar uma Fila
                     ticket.filas.add(fila)
 
-        Fila.objects.bulk_create(filas_to_create)
-        Ticket.objects.bulk_create(tickets_to_create)
-
         return render(request, 'Import_excel_db.html', {
             'uploaded_file_url': uploaded_file_url
         })   
     return render(request, 'Import_excel_db.html',{})
-
 
 def get_tickets(request):
     if request.method == 'GET':
