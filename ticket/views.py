@@ -15,6 +15,12 @@ def convert_date(date_string):
   hour, minute, second = time.split(':')
   return f'{year}-{month}-{day}T{hour}:{minute}:{second}.000Z'
 
+def convert_formato_sla(time_str):
+    mm, ss = map(int, time_str.split(':'))
+    hh = mm // 60
+    mm = mm % 60
+    return f"{hh:02d}:{mm:02d}:{ss:02d}"
+
 def Import_Excel_pandas(request):
     if request.method == 'POST' and request.FILES['myfile']: 
         lista_de_filas = ['Campo Infraestrutura', 'Campo Despacho', 'Campo DWDM', 'GMP', 
@@ -32,7 +38,7 @@ def Import_Excel_pandas(request):
                                 entrada=convert_date(row['Tarefas do Incidente - ITSM.Entrou na fila em']), 
                                 saida=convert_date(row['Tarefas do Incidente - ITSM.Tarefa executada em']))           
                 fila.save()
-                ticket, created = Ticket.objects.get_or_create(ticket=row['Incidente - ITSM.Número do incidente'], estacao=row['Incidente - ITSM.Localização'], descricao=row['Incidente - ITSM.Causa'], prioridade=row['Incidente - ITSM.Urgência'], sla=row['Incidente - ITSM.Prazo do SLA no formato H:MM'], atendimento=row['Incidente - ITSM.Tempo total no formato H:MM:SS'], categoria=row['Incidente - ITSM.Categoria de Atuação'], status='ABERTO')
+                ticket, created = Ticket.objects.get_or_create(ticket=row['Incidente - ITSM.Número do incidente'], estacao=row['Incidente - ITSM.Localização'], descricao=row['Incidente - ITSM.Causa'], prioridade=row['Incidente - ITSM.Urgência'], sla=convert_formato_sla(row['Incidente - ITSM.Prazo do SLA no formato H:MM']), atendimento=row['Incidente - ITSM.Tempo total no formato H:MM:SS'], categoria=row['Incidente - ITSM.Categoria de Atuação'], status='ABERTO')
                 ticket.filas.add(fila)
                 if any(f.nome in lista_de_filas for f in ticket.filas.all()):
                     ticket.save()
