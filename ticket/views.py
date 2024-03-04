@@ -32,18 +32,25 @@ def Import_Excel_pandas(request):
         empexceldata = pd.read_csv(filename, encoding='ISO-8859-1', index_col=False)
         empexceldata = empexceldata.loc[empexceldata['Incidente - ITSM.Número do incidente'] != ' ']
         dbframe = empexceldata
+
+        filas_to_create = []
+        tickets_to_create = []
+
         for index, row in dbframe.iterrows():
             if row['Incidente - ITSM.Número do incidente do pai'] == ' ':
-                fila = Fila.objects.create(nome=row['Tarefas do Incidente - ITSM.Grupo executor'],
-                                entrada=convert_date(row['Tarefas do Incidente - ITSM.Entrou na fila em']), 
-                                saida=convert_date(row['Tarefas do Incidente - ITSM.Tarefa executada em']))           
-                fila.save()
-                ticket, created = Ticket.objects.get_or_create(ticket=row['Incidente - ITSM.Número do incidente'], estacao=row['Incidente - ITSM.Localização'], descricao=row['Incidente - ITSM.Causa'], prioridade=row['Incidente - ITSM.Urgência'], sla=convert_formato_sla(row['Incidente - ITSM.Prazo do SLA no formato H:MM']), atendimento=row['Incidente - ITSM.Tempo total no formato H:MM:SS'], categoria=row['Incidente - ITSM.Categoria de Atuação'], status='ABERTO')
-                ticket.filas.add(fila)
-                if any(f.nome in lista_de_filas for f in ticket.filas.all()):
-                    ticket.save()
-                else:
-                    ticket.delete()
+                fila = Fila(nome=row['Tarefas do Incidente - ITSM.Grupo executor'],
+                            entrada=convert_date(row['Tarefas do Incidente - ITSM.Entrou na fila em']), 
+                            saida=convert_date(row['Tarefas do Incidente - ITSM.Tarefa executada em']))
+                fila.save()  # Salve o objeto Fila antes de adicioná-lo a um Ticket
+
+                if fila.nome in lista_de_filas:
+                    ticket = Ticket(ticket=row['Incidente - ITSM.Número do incidente'], estacao=row['Incidente - ITSM.Localização'], descricao=row['Incidente - ITSM.Causa'], prioridade=row['Incidente - ITSM.Urgência'], sla=convert_formato_sla(row['Incidente - ITSM.Prazo do SLA no formato H:MM']), atendimento=row['Incidente - ITSM.Tempo total no formato H:MM:SS'], categoria=row['Incidente - ITSM.Categoria de Atuação'], status='ABERTO')
+                    ticket.save()  # Salve o objeto Ticket antes de adicionar uma Fila
+                    ticket.filas.add(fila)
+
+        Fila.objects.bulk_create(filas_to_create)
+        Ticket.objects.bulk_create(tickets_to_create)
+
         return render(request, 'Import_excel_db.html', {
             'uploaded_file_url': uploaded_file_url
         })   
