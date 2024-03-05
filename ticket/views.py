@@ -24,7 +24,7 @@ def convert_formato_sla(time_str):
 def Import_Excel_pandas(request):
     if request.method == 'POST' and request.FILES['myfile']: 
         lista_de_filas = ['Campo Infraestrutura', 'Campo Despacho', 'Campo DWDM', 'GMP', 
-                          'Campo Sobressalente', 'Campo IP Core', 'Campo Ip Metro', 'Campo Fibra']
+                          'Campo IP Core', 'Campo Ip Metro', 'Campo Fibra']
         myfile = request.FILES['myfile']
         fs = FileSystemStorage()
         filename = fs.save(myfile.name, myfile)

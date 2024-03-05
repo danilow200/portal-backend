@@ -29,7 +29,24 @@ STATUS = (
     ('DESCONTO MAIOR QUE PERÍODO', 'Desconto maior que período'),
     # Adicione mais status conforme necessário
 )
+def converte_hora(input_str):
+    # Divida a string de entrada em dias e tempo
+        days_str, time_str = input_str.split(', ')
 
+    # Remova a palavra 'days' ou 'day' para obter o número de dias como um inteiro
+        days = int(days_str.replace(' days', '').replace(' day', ''))
+
+    # Divida a string de tempo em horas, minutos e segundos
+        hours_str, minutes_str, seconds_str = time_str.split(':')
+        hours = int(hours_str)
+        minutes = int(minutes_str)
+        seconds = int(seconds_str)
+
+    # Adicione o número de dias ao número de horas
+        total_hours = days * 24 + hours
+
+    # Retorne a string formatada
+        return '{:02}:{:02}:{:02}'.format(total_hours, minutes, seconds)
 class Fila(models.Model):
     nome = models.CharField(max_length=200)
     entrada = models.CharField(max_length=200)
@@ -74,13 +91,15 @@ class Ticket(models.Model):
         self.atendimento = str(atendimento_timedelta + desconto)
         self.save()
 
+    
+    
     def atendimento_descontado(self, desconto):
         h, m, s = map(int, self.atendimento.split(':'))
         atendimento_timedelta = timedelta(hours=h, minutes=m, seconds=s)
 
-        return str(atendimento_timedelta - desconto)
+        return converte_hora(str(atendimento_timedelta - desconto))
 
-
+    
 class Desconto(models.Model):
     inicio = models.DateTimeField(default=timezone.now)
     fim = models.DateTimeField(default=timezone.now)
@@ -102,6 +121,6 @@ class Desconto(models.Model):
         super().delete(*args, **kwargs)
 
     def __str__(self):
-        return str(self.fim - self.inicio)
+        return converte_hora(str(self.fim - self.inicio))
 
     objects = models.Manager()
