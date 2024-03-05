@@ -7,6 +7,8 @@ import os
 from django.core.files.storage import FileSystemStorage
 from .models import Ticket, Fila, Desconto
 from django.shortcuts import get_object_or_404
+import csv
+from django.http import HttpResponse
 
 # Função para converter uma string de data e hora para o formato ISO 8601
 def convert_date(date_string):
@@ -84,6 +86,30 @@ def get_tickets(request):
             })
         # Retorna os tickets e as filas associadas como uma resposta HTTP
         return JsonResponse(tickets_list, safe=False)
+
+def exporta_csv(request):
+    # Cria uma resposta HTTP do tipo CSV
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="tickets.csv"'
+
+    # Cria um escritor CSV
+    writer = csv.writer(response)
+    # Escreve o cabeçalho do CSV
+    writer.writerow(['Ticket', 'Estação', 'Descrição', 'Prioridade', 'SLA', 'Atendimento', 'Categoria', 'Status', 'Filas'])
+
+    # Obtém todos os tickets do banco de dados
+    tickets = Ticket.objects.all()
+
+    # Itera sobre cada ticket
+    for ticket in tickets:
+        # Obtém as filas associadas ao ticket
+        filas = ticket.filas.all()
+        # Prepara uma lista para armazenar os nomes das filas
+        filas_nomes = [fila.nome for fila in filas]
+        # Escreve os detalhes do ticket e das filas associadas no CSV
+        writer.writerow([ticket.ticket, ticket.estacao, ticket.descricao, ticket.prioridade, ticket.sla, ticket.atendimento, ticket.categoria, ticket.status, ', '.join(filas_nomes)])
+
+    return response
 
     
 # def create_desconto(request, ticket_id):
