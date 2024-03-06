@@ -107,16 +107,20 @@ class Desconto(models.Model):
     ticket = models.ForeignKey(
         'Ticket', related_name='descontos', on_delete=models.CASCADE)
     aplicado = models.BooleanField(default=False)
+    desconto_anterior = models.DurationField(default=timedelta)
 
     def save(self, *args, **kwargs):
         desconto = self.fim - self.inicio
-        super().save(*args, **kwargs)  # chama o método save original
-
-        # Atualiza o campo atendimento do Ticket com o tempo de atendimento descontado
-        if not self.aplicado:
+        if self.aplicado:
+            diferenca_desconto = desconto - self.desconto_anterior
+            if diferenca_desconto > timedelta():
+                self.ticket.aplicar_desconto(diferenca_desconto)
+        else:
             self.ticket.aplicar_desconto(desconto)
             self.aplicado = True
-            super().save(*args, **kwargs)
+
+        self.desconto_anterior = desconto
+        super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         desconto = self.fim - self.inicio
