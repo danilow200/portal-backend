@@ -55,8 +55,14 @@ def Import_Excel_pandas(request):
 
 def get_tickets(request):
     if request.method == 'GET':
-        # Obtém todos os tickets do banco de dados
-        tickets = Ticket.objects.all()
+        # Obtém o parâmetro 'n' da URL, se não existir, retorna todos os tickets
+        n = request.GET.get('n')
+        if n is not None:
+            n = int(n)
+            tickets = Ticket.objects.all()[:n]
+        else:
+            tickets = Ticket.objects.all()
+
         # Prepara uma lista para armazenar os dados dos tickets
         tickets_list = []
         # Itera sobre cada ticket
