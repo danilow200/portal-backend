@@ -27,26 +27,27 @@ STATUS = (
     ('VIOLADO', 'Violado'),
     ('NÃO VIOLADO', 'Não Violado'),
     ('DESCONTO MAIOR QUE PERÍODO', 'Desconto maior que período'),
-    # Adicione mais status conforme necessário
 )
 def converte_hora(input_str):
-    # Divida a string de entrada em dias e tempo
+        
+        # se o desconto for menos de 24h ele já retorna
+        if len(input_str.split(":")) == 3 and len(input_str.split(" ")) == 1:
+            return input_str
+    
         days_str, time_str = input_str.split(', ')
 
-    # Remova a palavra 'days' ou 'day' para obter o número de dias como um inteiro
+    # remove a palavra 'days' ou 'day' para obter o número de dias como um inteiro
         days = int(days_str.replace(' days', '').replace(' day', ''))
 
-    # Divida a string de tempo em horas, minutos e segundos
         hours_str, minutes_str, seconds_str = time_str.split(':')
         hours = int(hours_str)
         minutes = int(minutes_str)
         seconds = int(seconds_str)
 
-    # Adicione o número de dias ao número de horas
         total_hours = days * 24 + hours
 
-    # Retorne a string formatada
         return '{:02}:{:02}:{:02}'.format(total_hours, minutes, seconds)
+
 class Fila(models.Model):
     nome = models.CharField(max_length=200)
     entrada = models.CharField(max_length=200)
@@ -105,14 +106,17 @@ class Desconto(models.Model):
     fim = models.DateTimeField(default=timezone.now)
     ticket = models.ForeignKey(
         'Ticket', related_name='descontos', on_delete=models.CASCADE)
+    aplicado = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-
         desconto = self.fim - self.inicio
         super().save(*args, **kwargs)  # chama o método save original
 
         # Atualiza o campo atendimento do Ticket com o tempo de atendimento descontado
-        self.ticket.aplicar_desconto(desconto)
+        if not self.aplicado:
+            self.ticket.aplicar_desconto(desconto)
+            self.aplicado = True
+            super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         desconto = self.fim - self.inicio
