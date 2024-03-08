@@ -61,7 +61,7 @@ class Ticket(models.Model):
     ticket = models.IntegerField(primary_key=True)
     estacao = models.CharField(max_length=100)
     descricao = models.CharField(max_length=100)
-    prioridade = models.CharField(max_length=50)
+    prioridade = models.CharField(max_length=50, choices = PRIORIDADES)
     sla = models.CharField(max_length=50)
     atendimento = models.CharField(max_length=50)
     categoria = models.CharField(max_length=50, choices=CATEGORIAS)
