@@ -113,9 +113,11 @@ class Desconto(models.Model):
         desconto_atual = self.fim - self.inicio
         diferenca_desconto = desconto_atual - self.desconto_anterior
 
+        if diferenca_desconto != timedelta(0):
+            self.aplicado = False
+
         super().save(*args, **kwargs)  # chama o método save original
 
-        # Atualiza o campo atendimento do Ticket com a diferença de desconto
         if not self.aplicado:
             self.ticket.aplicar_desconto(diferenca_desconto)
             self.aplicado = True
