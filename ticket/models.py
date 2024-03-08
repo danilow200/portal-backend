@@ -116,8 +116,7 @@ class Desconto(models.Model):
         if diferenca_desconto != timedelta(0):
             self.aplicado = False
 
-        super().save(*args, **kwargs)  # chama o método save original
-
+        super().save(*args, **kwargs)  
         if not self.aplicado:
             self.ticket.aplicar_desconto(diferenca_desconto)
             self.aplicado = True
