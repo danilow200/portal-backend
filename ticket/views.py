@@ -9,6 +9,7 @@ from .models import Ticket, Fila, Desconto
 from django.shortcuts import get_object_or_404
 import csv
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
 # Função para converter uma string de data e hora para o formato ISO 8601
 def convert_date(date_string):
@@ -23,8 +24,9 @@ def convert_formato_sla(time_str):
     mm = mm % 60
     return f"{hh:02d}:{mm:02d}:{ss:02d}"
 
+@csrf_exempt
 def Import_Excel_pandas(request):
-    if request.method == 'POST' and request.FILES['myfile']: 
+    if request.method == 'POST' and 'myfile' in request.FILES: 
         lista_de_filas = ['Campo Infraestrutura', 'Campo Despacho', 'Campo DWDM', 'GMP', 
                           'Campo IP Core', 'Campo Ip Metro', 'Campo Fibra']
         myfile = request.FILES['myfile']
