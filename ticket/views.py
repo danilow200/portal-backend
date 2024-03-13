@@ -50,9 +50,10 @@ def Import_Excel_pandas(request):
                     ticket.save()  # Salve o objeto Ticket antes de adicionar uma Fila
                     ticket.filas.add(fila)
 
-        return render(request, 'Import_excel_db.html', {
-            'uploaded_file_url': uploaded_file_url
-        })   
+        return JsonResponse({
+            'uploaded_file_url': uploaded_file_url,
+            'message': 'Todas as operações de banco de dados foram concluídas.'
+        }) 
     return render(request, 'Import_excel_db.html',{})
 
 def get_tickets(request, nivelPrioridade=None):
