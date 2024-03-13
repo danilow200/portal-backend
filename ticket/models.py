@@ -130,6 +130,6 @@ class Desconto(models.Model):
 
 
     def __str__(self):
-        return converte_hora(str(self.fim - self.inicio))
+        return f"{self.ticket} - {converte_hora(str(self.fim - self.inicio))}"
 
     objects = models.Manager()
