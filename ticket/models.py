@@ -92,8 +92,15 @@ class Ticket(models.Model):
         h, m, s = map(int, self.atendimento.split(':'))
         atendimento_timedelta = timedelta(hours=h, minutes=m, seconds=s)
 
-        self.atendimento = str(atendimento_timedelta + desconto)
+        atendimento_revertido = atendimento_timedelta + desconto
+        total_seconds = int(atendimento_revertido.total_seconds())
+        horas_revertidas = total_seconds // 3600
+        minutos_revertidos = (total_seconds // 60) % 60
+        segundos_revertidos = total_seconds % 60
+
+        self.atendimento = f"{horas_revertidas:02d}:{minutos_revertidos:02d}:{segundos_revertidos:02d}"
         self.save()
+
 
     
     
