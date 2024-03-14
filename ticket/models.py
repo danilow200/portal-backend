@@ -18,9 +18,9 @@ CATEGORIAS = (
 )
 
 PRIORIDADES = (
-    ('ALTA', 'Alta'),
-    ('MÉDIA', 'Média'),
-    ('BAIXA', 'Baixa'),
+    ('Alta', 'Alta'),
+    ('Média', 'Média'),
+    ('Baixa', 'Baixa'),
 )
 
 STATUS = (
