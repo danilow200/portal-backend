@@ -11,7 +11,7 @@ urlpatterns =[
   # Rota para a página 'Import_Excel_pandas' que também aponta para a função 'Import_Excel_pandas' em 'views'
   path('Import_Excel_pandas/', views.Import_Excel_pandas,name="Import_Excel_pandas"), 
   path('get_tickets/', views.get_tickets, name="get_tickets"),
-  path('get_tickets/<str:nivelPrioridade>/', views.get_tickets, name="get_tickets"),
+  path('get_tickets/<str:filtros>/', views.get_tickets, name="get_tickets"),
   path('exporta_csv/', views.exporta_csv, name='exporta_csv'),
 ] 
 

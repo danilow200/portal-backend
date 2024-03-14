@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 import csv
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Q
 
 # Função para converter uma string de data e hora para o formato ISO 8601
 def convert_date(date_string):
@@ -56,15 +57,16 @@ def Import_Excel_pandas(request):
                     ticket.save()  # Salve o objeto Ticket antes de adicionar uma Fila
                     ticket.filas.add(fila)
 
-        return render(request, 'Import_excel_db.html', {
-            'uploaded_file_url': uploaded_file_url
-        })   
+        return JsonResponse({
+            'uploaded_file_url': uploaded_file_url,
+            'message': 'Todas as operações de banco de dados foram concluídas.'
+        }) 
     return render(request, 'Import_excel_db.html',{})
 
-def get_tickets(request, nivelPrioridade=None):
+def get_tickets(request, filtros=None):
         tickets = Ticket.objects.all()
-        if nivelPrioridade:
-            tickets = tickets.filter(prioridade=nivelPrioridade)
+        if filtros:
+            tickets = tickets.filter(Q(prioridade=filtros) | Q(categoria=filtros) | Q(status=filtros) | Q(filas__nome=filtros))
         context = {"tickets": tickets} #Tornar global
         
         # Prepara uma lista para armazenar os dados dos tickets
