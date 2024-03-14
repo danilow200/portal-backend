@@ -77,49 +77,53 @@ def Import_Excel_pandas(request):
                     ticket.save()  # Salve o objeto Ticket antes de adicionar uma Fila
                     ticket.filas.add(fila)
 
-        return render(request, 'Import_excel_db.html', {
-            'uploaded_file_url': uploaded_file_url
-        })   
+        return JsonResponse({
+            'uploaded_file_url': uploaded_file_url,
+            'message': 'Todas as operações de banco de dados foram concluídas.'
+        }) 
     return render(request, 'Import_excel_db.html',{})
 
-def get_tickets(request, nivelPrioridade=None):
-        tickets = Ticket.objects.all()
-        if nivelPrioridade:
-            tickets = tickets.filter(prioridade=nivelPrioridade)
-        context = {"tickets": tickets} #Tornar global
-        
-        # Prepara uma lista para armazenar os dados dos tickets
-        tickets_list = []
-        # Itera sobre cada ticket
-        for ticket in tickets:
-            # Obtém as filas associadas ao ticket
-            filas = ticket.filas.all()
-            # Prepara uma lista para armazenar os dados das filas
-            filas_list = []
-            for fila in filas:
-                # Adiciona os detalhes da fila à lista de filas
-                filas_list.append({
-                    'nome': fila.nome,
-                    'entrada': fila.entrada,
-                    'saida': fila.saida
-                })
-            # Adiciona os detalhes do ticket e das filas associadas à lista de tickets
-            tickets_list.append({
-                'ticket': ticket.ticket,
-                'estacao': ticket.estacao,
-                'descricao': ticket.descricao,
-                'prioridade': ticket.prioridade,
-                'sla': ticket.sla,
-                'inicio': ticket.inicio,
-                'fim': ticket.fim,
-                'mes': ticket.mes,
-                'atendimento': ticket.atendimento,
-                'categoria': ticket.categoria,
-                'status': ticket.status,
-                'filas': filas_list
+def get_tickets(request):
+    mes_atendimento = request.GET.get('mes_atendimento', None)
+    tickets = Ticket.objects.all()
+
+    if mes_atendimento:
+        tickets = tickets.filter(mes=mes_atendimento)
+    context = {"tickets": tickets} #Tornar global
+    
+    # Prepara uma lista para armazenar os dados dos tickets
+    tickets_list = []
+    # Itera sobre cada ticket
+    for ticket in tickets:
+        # Obtém as filas associadas ao ticket
+        filas = ticket.filas.all()
+        # Prepara uma lista para armazenar os dados das filas
+        filas_list = []
+        for fila in filas:
+            # Adiciona os detalhes da fila à lista de filas
+            filas_list.append({
+                'nome': fila.nome,
+                'entrada': fila.entrada,
+                'saida': fila.saida
             })
-        # Retorna os tickets e as filas associadas como uma resposta HTTP
-        return JsonResponse(tickets_list, safe=False)
+        # Adiciona os detalhes do ticket e das filas associadas à lista de tickets
+        tickets_list.append({
+            'ticket': ticket.ticket,
+            'estacao': ticket.estacao,
+            'descricao': ticket.descricao,
+            'prioridade': ticket.prioridade,
+            'sla': ticket.sla,
+            'inicio': ticket.inicio,
+            'fim': ticket.fim,
+            'mes': ticket.mes,
+            'atendimento': ticket.atendimento,
+            'categoria': ticket.categoria,
+            'status': ticket.status,
+            'filas': filas_list
+        })
+    # Retorna os tickets e as filas associadas como uma resposta HTTP
+    return JsonResponse(tickets_list, safe=False)
+
 
 def exporta_csv(request):
     # Cria uma resposta HTTP do tipo CSV
