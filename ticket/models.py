@@ -63,14 +63,18 @@ class Ticket(models.Model):
     descricao = models.CharField(max_length=100)
     prioridade = models.CharField(max_length=50, choices = PRIORIDADES)
     sla = models.CharField(max_length=50)
-    inicio = models.CharField(max_length=50)
-    fim = models.CharField(max_length=50)
+    inicio = models.CharField(max_length=50, null=True) 
+    fim = models.CharField(max_length=50, null=True)
     atendimento = models.CharField(max_length=50)
-    mes = models.CharField(max_length = 50)
+    mes = models.CharField(max_length = 50, null=True) 
     categoria = models.CharField(max_length=50, choices=CATEGORIAS)
     status = models.CharField(max_length=50, choices=STATUS, default='ABERTO')
     filas = models.ManyToManyField(Fila)
     ultimo_desconto_aplicado = models.DurationField(default=timedelta)
+ 
+#Adicionei o 'null=true' pra resolver o erro:
+# (You are trying to add a non-nullable field 'inicio/fim/mes' to ticket without a default; we can't do that 
+# (the database needs something to populate existing rows).)
 
     def __str__(self):
         return str(self.ticket)

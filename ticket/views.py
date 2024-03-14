@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 import csv
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-
+from django.db.models import Q
 
 mes_ticket= {
     '01': 'Janeiro',
@@ -83,12 +83,16 @@ def Import_Excel_pandas(request):
         }) 
     return render(request, 'Import_excel_db.html',{})
 
-def get_tickets(request):
+def get_tickets(request, filtros=None):
     mes_atendimento = request.GET.get('mes_atendimento', None)
     tickets = Ticket.objects.all()
 
-    if mes_atendimento:
-        tickets = tickets.filter(mes=mes_atendimento)
+    if mes_atendimento or filtros:
+        tickets = tickets.filter(
+            Q(mes=mes_atendimento) | Q(prioridade=filtros) | Q(categoria=filtros) | 
+            Q(status=filtros) | Q(filas__nome=filtros)
+            )
+        
     context = {"tickets": tickets} #Tornar global
     
     # Prepara uma lista para armazenar os dados dos tickets
