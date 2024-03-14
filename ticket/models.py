@@ -113,6 +113,14 @@ class Desconto(models.Model):
     aplicado = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
+        inicio_ticket = timezone.make_aware(datetime.strptime(self.ticket.inicio, "%d/%m/%Y %H:%M:%S"))
+        fim_ticket = timezone.make_aware(datetime.strptime(self.ticket.fim, "%d/%m/%Y %H:%M:%S"))
+
+        if self.inicio < inicio_ticket or self.fim > fim_ticket:
+            raise ValueError("Os campos 'inicio' e 'fim' do Desconto devem estar dentro do intervalo do Ticket correspondente.")
+
+
+        
         desconto_atual = self.fim - self.inicio
         diferenca_desconto = desconto_atual - self.desconto_anterior
 
