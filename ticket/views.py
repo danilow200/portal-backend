@@ -10,14 +10,33 @@ from django.shortcuts import get_object_or_404
 import csv
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Q
 
+
+mes_ticket= {
+    '01': 'Janeiro',
+    '02': 'Fevereiro',
+    '03': 'Março',
+    '04': 'Abril',
+    '05': 'Maio',
+    '06': 'Junho',
+    '07': 'Julho',
+    '08': 'Agosto',
+    '09': 'Setembro',
+    '10': 'Outubro',
+    '11': 'Novembro',
+    '12': 'Dezembro'
+}
 # Função para converter uma string de data e hora para o formato ISO 8601
 def convert_date(date_string):
   date, time = date_string.split(' ')
   day, month, year = date.split('/')
   hour, minute, second = time.split(':')
   return f'{year}-{month}-{day}T{hour}:{minute}:{second}.000Z'
+
+def convert_mes(date_string):
+    date,time = date_string.split(' ')
+    day, month, year = date.split('/')
+    return f'{mes_ticket[month]} - {year}'
 
 def convert_formato_sla(time_str):
     mm, ss = map(int, time_str.split(':'))
@@ -52,21 +71,21 @@ def Import_Excel_pandas(request):
                                     sla=convert_formato_sla(row['Incidente - ITSM.Prazo do SLA no formato H:MM']), 
                                     inicio= row['Incidente - ITSM.Data/hora de criação do incidente'], 
                                     fim= row['Incidente - ITSM.Fechado em_1'],
-                                    atendimento=row['Incidente - ITSM.Tempo total no formato H:MM:SS'], 
+                                    atendimento=row['Incidente - ITSM.Tempo total no formato H:MM:SS'],
+                                    mes=convert_mes(row['Incidente - ITSM.Fechado em_1']) ,
                                     categoria=row['Incidente - ITSM.Categoria de Atuação'], status='ABERTO')
                     ticket.save()  # Salve o objeto Ticket antes de adicionar uma Fila
                     ticket.filas.add(fila)
 
-        return JsonResponse({
-            'uploaded_file_url': uploaded_file_url,
-            'message': 'Todas as operações de banco de dados foram concluídas.'
-        }) 
+        return render(request, 'Import_excel_db.html', {
+            'uploaded_file_url': uploaded_file_url
+        })   
     return render(request, 'Import_excel_db.html',{})
 
-def get_tickets(request, filtros=None):
+def get_tickets(request, nivelPrioridade=None):
         tickets = Ticket.objects.all()
-        if filtros:
-            tickets = tickets.filter(Q(prioridade=filtros) | Q(categoria=filtros) | Q(status=filtros) | Q(filas__nome=filtros))
+        if nivelPrioridade:
+            tickets = tickets.filter(prioridade=nivelPrioridade)
         context = {"tickets": tickets} #Tornar global
         
         # Prepara uma lista para armazenar os dados dos tickets
@@ -91,6 +110,9 @@ def get_tickets(request, filtros=None):
                 'descricao': ticket.descricao,
                 'prioridade': ticket.prioridade,
                 'sla': ticket.sla,
+                'inicio': ticket.inicio,
+                'fim': ticket.fim,
+                'mes': ticket.mes,
                 'atendimento': ticket.atendimento,
                 'categoria': ticket.categoria,
                 'status': ticket.status,
