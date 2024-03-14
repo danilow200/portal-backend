@@ -46,7 +46,13 @@ def Import_Excel_pandas(request):
                 fila.save()  # Salve o objeto Fila antes de adicioná-lo a um Ticket
 
                 if fila.nome in lista_de_filas:
-                    ticket = Ticket(ticket=row['Incidente - ITSM.Número do incidente'], estacao=row['Incidente - ITSM.Localização'], descricao=row['Incidente - ITSM.Causa'], prioridade=row['Incidente - ITSM.Urgência'], sla=convert_formato_sla(row['Incidente - ITSM.Prazo do SLA no formato H:MM']), atendimento=row['Incidente - ITSM.Tempo total no formato H:MM:SS'], categoria=row['Incidente - ITSM.Categoria de Atuação'], status='ABERTO')
+                    ticket = Ticket(ticket=row['Incidente - ITSM.Número do incidente'], estacao=row['Incidente - ITSM.Localização'], 
+                                    descricao=row['Incidente - ITSM.Causa'], prioridade=row['Incidente - ITSM.Urgência'], 
+                                    sla=convert_formato_sla(row['Incidente - ITSM.Prazo do SLA no formato H:MM']), 
+                                    inicio= row['Incidente - ITSM.Data/hora de criação do incidente'], 
+                                    fim= row['Incidente - ITSM.Fechado em_1'],
+                                    atendimento=row['Incidente - ITSM.Tempo total no formato H:MM:SS'], 
+                                    categoria=row['Incidente - ITSM.Categoria de Atuação'], status='ABERTO')
                     ticket.save()  # Salve o objeto Ticket antes de adicionar uma Fila
                     ticket.filas.add(fila)
 
