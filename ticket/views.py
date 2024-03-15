@@ -111,6 +111,15 @@ def get_tickets(request, filtros=None):
                 'entrada': fila.entrada,
                 'saida': fila.saida
             })
+
+        descontos = ticket.descontos.all()
+        descontos_list = []
+        for desconto in descontos:
+            descontos_list.append({
+                'inicio': desconto.inicio,
+                'fim': desconto.fim,
+                'aplicado': desconto.aplicado
+            })
         # Adiciona os detalhes do ticket e das filas associadas à lista de tickets
         tickets_list.append({
             'ticket': ticket.ticket,
@@ -124,7 +133,8 @@ def get_tickets(request, filtros=None):
             'atendimento': ticket.atendimento,
             'categoria': ticket.categoria,
             'status': ticket.status,
-            'filas': filas_list
+            'filas': filas_list,
+            'descontos': descontos_list
         })
     # Retorna os tickets e as filas associadas como uma resposta HTTP
     return JsonResponse(tickets_list, safe=False)
