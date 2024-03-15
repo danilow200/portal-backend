@@ -11,6 +11,7 @@ import csv
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
+from django.core.exceptions import ObjectDoesNotExist
 
 mes_ticket= {
     '01': 'Janeiro',
@@ -91,7 +92,7 @@ def get_tickets(request, filtros=None):
         tickets = tickets.filter(
             Q(mes=mes_atendimento) | Q(prioridade=filtros) | Q(categoria=filtros) | 
             Q(status=filtros) | Q(filas__nome=filtros)
-            )
+            ).distinct()
         
     context = {"tickets": tickets} #Tornar global
     
@@ -128,6 +129,25 @@ def get_tickets(request, filtros=None):
     # Retorna os tickets e as filas associadas como uma resposta HTTP
     return JsonResponse(tickets_list, safe=False)
 
+@csrf_exempt
+def update_ticket(request, ticket_id):
+    if request.method == 'POST':
+        try:
+            # Obtém o ticket que precisa ser atualizado
+            ticket = Ticket.objects.get(ticket=ticket_id)
+
+            # Atualiza os atributos do ticket com os dados enviados na requisição
+            for key, value in request.POST.items():
+                setattr(ticket, key, value)
+
+            # Salva as alterações no banco de dados
+            ticket.save()
+
+            return JsonResponse({'status': 'success'}, status=200)
+        except ObjectDoesNotExist:
+            return JsonResponse({'error': 'Ticket not found'}, status=404)
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=400)
 
 def exporta_csv(request):
     # Cria uma resposta HTTP do tipo CSV
