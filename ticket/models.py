@@ -74,7 +74,7 @@ class Ticket(models.Model):
  
 #Adicionei o 'null=true' pra resolver o erro:
 # (You are trying to add a non-nullable field 'inicio/fim/mes' to ticket without a default; we can't do that 
-# (the database needs something to populate existing rows).) teste commit
+# (the database needs something to populate existing rows).) teste commit 2
 
     def __str__(self):
         return str(self.ticket)
