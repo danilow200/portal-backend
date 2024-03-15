@@ -1,6 +1,6 @@
 # portal-gmp-backend
  
-Welcome to the Jungle
+Welcome to the Djangle
 
 Dentro da pasta do repositório use os comandos abaixo em ordem:
 
