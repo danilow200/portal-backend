@@ -148,6 +148,26 @@ def update_ticket(request, ticket_id):
             return JsonResponse({'error': 'Ticket not found'}, status=404)
     else:
         return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+@csrf_exempt
+def delete_ticket(request, ticket_id):
+    if request.method == 'DELETE':
+        try:
+            # Obtém o ticket que precisa ser deletado
+            ticket = Ticket.objects.get(ticket=ticket_id)
+
+            # Deleta todas as filas associadas ao ticket
+            ticket.filas.all().delete()
+
+            # Deleta o ticket
+            ticket.delete()
+
+            return JsonResponse({'status': 'success'}, status=200)
+        except ObjectDoesNotExist:
+            return JsonResponse({'error': 'Ticket not found'}, status=404)
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+
 
 def exporta_csv(request):
     # Cria uma resposta HTTP do tipo CSV
