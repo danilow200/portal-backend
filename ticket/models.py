@@ -27,6 +27,8 @@ STATUS = (
     ('VIOLADO', 'Violado'),
     ('NÃO VIOLADO', 'Não Violado'),
     ('DESCONTO MAIOR QUE PERÍODO', 'Desconto maior que período'),
+    ('EXPURGADO', 'Expurgado'),
+    ('NEUTRALIZADO', 'Neutralizado'),
 )
 def converte_hora(input_str):
         
@@ -107,7 +109,11 @@ class Ticket(models.Model):
 
 
     
-    
+    def save(self, *args, **kwargs):
+        if self.status == 'NEUTRALIZADO':
+            self.atendimento = self.sla
+        super().save(*args, **kwargs)
+
     def atendimento_descontado(self, desconto):
         h, m, s = map(int, self.atendimento.split(':'))
         atendimento_timedelta = timedelta(hours=h, minutes=m, seconds=s)
