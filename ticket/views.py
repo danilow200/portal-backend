@@ -60,38 +60,49 @@ def Import_Excel_pandas(request):
         dbframe = empexceldata
 
         filas_salvas = []
+        ticket_atual = dbframe['Incidente - ITSM.Número do incidente'][0]
+        entrada_atual = " "
+        fechamento_atual = " "
         for index, row in dbframe.iterrows():
+            if ticket_atual != row['Incidente - ITSM.Número do incidente']:
+                ticket_atual = row['Incidente - ITSM.Número do incidente']
+                filas_salvas = []
+
             if row['Incidente - ITSM.Número do incidente do pai'] == ' ':
                 fila_nome = row['Tarefas do Incidente - ITSM.Grupo executor']
                 fila_entrada = convert_date(row['Tarefas do Incidente - ITSM.Entrou na fila em'])
                 fila_saida = convert_date(row['Tarefas do Incidente - ITSM.Tarefa executada em'])
 
-                # Verifique se a fila já existe
-                fila_existente = Fila.objects.filter(nome=fila_nome, entrada=fila_entrada, saida=fila_saida).first()
-                if fila_existente is None:
-                    fila = Fila(nome=fila_nome, entrada=fila_entrada, saida=fila_saida)
-                    fila.save()  # Salve o objeto Fila antes de adicioná-lo a um Ticket
-                    filas_salvas.append(fila)
+                if entrada_atual != row['Tarefas do Incidente - ITSM.Entrou na fila em'] or fechamento_atual != row['Tarefas do Incidente - ITSM.Tarefa executada em']:
+                    valida = True
+                    for fila_test in filas_salvas:
+                        if fila_test.entrada == fila_entrada or fila_test.saida == fila_saida:
+                            valida = False
+                    if valida:
+                        fila = Fila(nome=fila_nome, entrada=fila_entrada, saida=fila_saida)
+                        fila.save()
+                        
+                        filas_salvas.append(fila)
+                        entrada_atual = row['Tarefas do Incidente - ITSM.Entrou na fila em']
+                        fechamento_atual = row['Tarefas do Incidente - ITSM.Tarefa executada em']
 
-                if any(fila_salva.nome in lista_de_filas for fila_salva in filas_salvas):
-                    ticket = Ticket(ticket=row['Incidente - ITSM.Número do incidente'], estacao=row['Incidente - ITSM.Localização'], 
-                                    descricao=row['Incidente - ITSM.Causa'], prioridade=row['Incidente - ITSM.Urgência'], 
-                                    sla=convert_formato_sla(row['Incidente - ITSM.Prazo do SLA no formato H:MM']), 
-                                    inicio= row['Incidente - ITSM.Data/hora de criação do incidente'], 
-                                    fim= row['Incidente - ITSM.Fechado em_1'],
-                                    atendimento=row['Incidente - ITSM.Tempo total no formato H:MM:SS'],
-                                    mes=convert_mes(row['Incidente - ITSM.Fechado em_1']) ,
-                                    categoria=row['Incidente - ITSM.Categoria de Atuação'], status='ABERTO')
-                    ticket.save()  # Salve o objeto Ticket antes de adicionar uma Fila
-                    ticket.filas.add(*filas_salvas)
-                    filas_salvas = []
+            if any(fila_salva.nome in lista_de_filas for fila_salva in filas_salvas):
+                ticket = Ticket(ticket=row['Incidente - ITSM.Número do incidente'], estacao=row['Incidente - ITSM.Localização'], 
+                                descricao=row['Incidente - ITSM.Causa'], prioridade=row['Incidente - ITSM.Urgência'], 
+                                sla=convert_formato_sla(row['Incidente - ITSM.Prazo do SLA no formato H:MM']), 
+                                inicio= row['Incidente - ITSM.Data/hora de criação do incidente'], 
+                                fim= row['Incidente - ITSM.Fechado em_1'],
+                                atendimento=row['Incidente - ITSM.Tempo total no formato H:MM:SS'],
+                                mes=convert_mes(row['Incidente - ITSM.Fechado em_1']) ,
+                                categoria=row['Incidente - ITSM.Categoria de Atuação'], status='ABERTO')
+                ticket.save()  # Salve o objeto Ticket antes de adicionar uma Fila
+                ticket.filas.add(*filas_salvas)
 
         return JsonResponse({
             'uploaded_file_url': uploaded_file_url,
             'message': 'Todas as operações de banco de dados foram concluídas.'
         }) 
     return render(request, 'Import_excel_db.html',{})
-
 
 def get_tickets(request, filtros=None):
     mes_atendimento = request.GET.get('mes_atendimento', None)
