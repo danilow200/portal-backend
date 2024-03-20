@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.db.models.functions import Coalesce
 from datetime import datetime, timedelta
 from django.db.models import Sum, F
+from django.contrib.auth.models import User
 
 CATEGORIAS = (
     ('DWDM', 'DWDM'),
@@ -88,6 +89,7 @@ class Ticket(models.Model):
     status = models.CharField(max_length=50, choices=STATUS, default='ABERTO')
     filas = models.ManyToManyField(Fila)
     ultimo_desconto_aplicado = models.DurationField(default=timedelta)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 # Adicionei o 'null=true' pra resolver o erro:
 # (You are trying to add a non-nullable field 'inicio/fim/mes' to ticket without a default; we can't do that
@@ -142,7 +144,7 @@ class Desconto(models.Model):
         'Ticket', related_name='descontos', on_delete=models.CASCADE)
     aplicado = models.BooleanField(default=False)
     categoria = models.CharField(max_length=150, choices=CATEGORIAS_D)
-    auditor = models.CharField(max_length=150)
+    auditor = models.CharField(max_length=150, blank=True)
 
     def save(self, *args, **kwargs):
         inicio_ticket = timezone.make_aware(
@@ -160,7 +162,11 @@ class Desconto(models.Model):
         if diferenca_desconto != timedelta(0):
             self.aplicado = False
 
+        # Defina o campo 'auditor' com o nome de usuário do usuário logado
+        self.auditor = self.ticket.user.username
+
         super().save(*args, **kwargs)
+
         if not self.aplicado:
             self.ticket.aplicar_desconto(diferenca_desconto)
             self.aplicado = True
