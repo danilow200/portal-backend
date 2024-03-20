@@ -30,25 +30,28 @@ STATUS = (
     ('EXPURGADO', 'Expurgado'),
     ('NEUTRALIZADO', 'Neutralizado'),
 )
+
+
 def converte_hora(input_str):
-        
-        # se o desconto for menos de 24h ele já retorna
-        if len(input_str.split(":")) == 3 and len(input_str.split(" ")) == 1:
-            return input_str
-    
-        days_str, time_str = input_str.split(', ')
+
+    # se o desconto for menos de 24h ele já retorna
+    if len(input_str.split(":")) == 3 and len(input_str.split(" ")) == 1:
+        return input_str
+
+    days_str, time_str = input_str.split(', ')
 
     # remove a palavra 'days' ou 'day' para obter o número de dias como um inteiro
-        days = int(days_str.replace(' days', '').replace(' day', ''))
+    days = int(days_str.replace(' days', '').replace(' day', ''))
 
-        hours_str, minutes_str, seconds_str = time_str.split(':')
-        hours = int(hours_str)
-        minutes = int(minutes_str)
-        seconds = int(seconds_str)
+    hours_str, minutes_str, seconds_str = time_str.split(':')
+    hours = int(hours_str)
+    minutes = int(minutes_str)
+    seconds = int(seconds_str)
 
-        total_hours = days * 24 + hours
+    total_hours = days * 24 + hours
 
-        return '{:02}:{:02}:{:02}'.format(total_hours, minutes, seconds)
+    return '{:02}:{:02}:{:02}'.format(total_hours, minutes, seconds)
+
 
 class Fila(models.Model):
     nome = models.CharField(max_length=200)
@@ -63,19 +66,19 @@ class Ticket(models.Model):
     ticket = models.IntegerField(primary_key=True)
     estacao = models.CharField(max_length=100)
     descricao = models.CharField(max_length=100)
-    prioridade = models.CharField(max_length=50, choices = PRIORIDADES)
+    prioridade = models.CharField(max_length=50, choices=PRIORIDADES)
     sla = models.CharField(max_length=50)
-    inicio = models.CharField(max_length=50, null=True) 
+    inicio = models.CharField(max_length=50, null=True)
     fim = models.CharField(max_length=50, null=True)
     atendimento = models.CharField(max_length=50)
-    mes = models.CharField(max_length = 50, null=True) 
+    mes = models.CharField(max_length=50, null=True)
     categoria = models.CharField(max_length=50, choices=CATEGORIAS)
     status = models.CharField(max_length=50, choices=STATUS, default='ABERTO')
     filas = models.ManyToManyField(Fila)
     ultimo_desconto_aplicado = models.DurationField(default=timedelta)
- 
-#Adicionei o 'null=true' pra resolver o erro:
-# (You are trying to add a non-nullable field 'inicio/fim/mes' to ticket without a default; we can't do that 
+
+# Adicionei o 'null=true' pra resolver o erro:
+# (You are trying to add a non-nullable field 'inicio/fim/mes' to ticket without a default; we can't do that
 # (the database needs something to populate existing rows).) teste commit 2
 
     def __str__(self):
@@ -107,8 +110,6 @@ class Ticket(models.Model):
         self.atendimento = f"{horas_revertidas:02d}:{minutos_revertidos:02d}:{segundos_revertidos:02d}"
         self.save()
 
-
-    
     def save(self, *args, **kwargs):
         if self.status == 'NEUTRALIZADO':
             self.atendimento = self.sla
@@ -120,7 +121,7 @@ class Ticket(models.Model):
 
         return converte_hora(str(atendimento_timedelta - desconto))
 
-    
+
 class Desconto(models.Model):
     inicio = models.DateTimeField(default=timezone.now)
     fim = models.DateTimeField(default=timezone.now)
@@ -130,21 +131,22 @@ class Desconto(models.Model):
     aplicado = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        inicio_ticket = timezone.make_aware(datetime.strptime(self.ticket.inicio, "%d/%m/%Y %H:%M:%S"))
-        fim_ticket = timezone.make_aware(datetime.strptime(self.ticket.fim, "%d/%m/%Y %H:%M:%S"))
+        inicio_ticket = timezone.make_aware(
+            datetime.strptime(self.ticket.inicio, "%d/%m/%Y %H:%M:%S"))
+        fim_ticket = timezone.make_aware(
+            datetime.strptime(self.ticket.fim, "%d/%m/%Y %H:%M:%S"))
 
         if self.inicio < inicio_ticket or self.fim > fim_ticket:
-            raise ValueError("Os campos 'inicio' e 'fim' do Desconto devem estar dentro do intervalo do Ticket correspondente.")
+            raise ValueError(
+                "Os campos 'inicio' e 'fim' do Desconto devem estar dentro do intervalo do Ticket correspondente.")
 
-
-        
         desconto_atual = self.fim - self.inicio
         diferenca_desconto = desconto_atual - self.desconto_anterior
 
         if diferenca_desconto != timedelta(0):
             self.aplicado = False
 
-        super().save(*args, **kwargs)  
+        super().save(*args, **kwargs)
         if not self.aplicado:
             self.ticket.aplicar_desconto(diferenca_desconto)
             self.aplicado = True
@@ -155,7 +157,6 @@ class Desconto(models.Model):
         desconto = self.fim - self.inicio
         self.ticket.reverter_desconto(desconto)
         super().delete(*args, **kwargs)
-
 
     def __str__(self):
         return f"{self.ticket} - {converte_hora(str(self.fim - self.inicio))}"
