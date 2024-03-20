@@ -12,6 +12,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
+from datetime import datetime
 
 mes_ticket= {
     '01': 'Janeiro',
@@ -45,6 +46,14 @@ def convert_formato_sla(time_str):
     mm = mm % 60
     return f"{hh:02d}:{mm:02d}:{ss:02d}"
 
+def compara_data(data1, data2):
+    formato = "%d/%m/%Y %H:%M:%S"
+    data1_convertida = datetime.strptime(data1, formato)
+    data2_convertida = datetime.strptime(data2, formato)
+
+    return data1_convertida >= data2_convertida
+
+
 @csrf_exempt
 def Import_Excel_pandas(request):
     if request.method == 'POST' and 'myfile' in request.FILES: 
@@ -61,19 +70,18 @@ def Import_Excel_pandas(request):
 
         filas_salvas = []
         ticket_atual = dbframe['Incidente - ITSM.Número do incidente'][0]
-        entrada_atual = " "
-        fechamento_atual = " "
+
         for index, row in dbframe.iterrows():
             if ticket_atual != row['Incidente - ITSM.Número do incidente']:
                 ticket_atual = row['Incidente - ITSM.Número do incidente']
                 filas_salvas = []
 
-            if row['Incidente - ITSM.Número do incidente do pai'] == ' ':
+            if row['Incidente - ITSM.Número do incidente do pai'] == ' ' and ticket_atual == row['Incidente - ITSM.Número do incidente']:
                 fila_nome = row['Tarefas do Incidente - ITSM.Grupo executor']
                 fila_entrada = convert_date(row['Tarefas do Incidente - ITSM.Entrou na fila em'])
                 fila_saida = convert_date(row['Tarefas do Incidente - ITSM.Tarefa executada em'])
 
-                if entrada_atual != row['Tarefas do Incidente - ITSM.Entrou na fila em'] or fechamento_atual != row['Tarefas do Incidente - ITSM.Tarefa executada em']:
+                if compara_data(row['Tarefas do Incidente - ITSM.Entrou na fila em'], row['Incidente - ITSM.Data/hora de criação do incidente']):
                     valida = True
                     for fila_test in filas_salvas:
                         if fila_test.entrada == fila_entrada or fila_test.saida == fila_saida:
@@ -83,10 +91,9 @@ def Import_Excel_pandas(request):
                         fila.save()
                         
                         filas_salvas.append(fila)
-                        entrada_atual = row['Tarefas do Incidente - ITSM.Entrou na fila em']
-                        fechamento_atual = row['Tarefas do Incidente - ITSM.Tarefa executada em']
 
-            if any(fila_salva.nome in lista_de_filas for fila_salva in filas_salvas):
+
+            if any(fila_salva.nome in lista_de_filas for fila_salva in filas_salvas) and ticket_atual == row['Incidente - ITSM.Número do incidente']:
                 ticket = Ticket(ticket=row['Incidente - ITSM.Número do incidente'], estacao=row['Incidente - ITSM.Localização'], 
                                 descricao=row['Incidente - ITSM.Causa'], prioridade=row['Incidente - ITSM.Urgência'], 
                                 sla=convert_formato_sla(row['Incidente - ITSM.Prazo do SLA no formato H:MM']), 
