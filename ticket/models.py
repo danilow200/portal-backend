@@ -6,6 +6,7 @@ from django.db.models.functions import Coalesce
 from datetime import datetime, timedelta
 from django.db.models import Sum, F
 from django.contrib.auth.models import User
+import getpass
 
 CATEGORIAS = (
     ('DWDM', 'DWDM'),
@@ -89,7 +90,6 @@ class Ticket(models.Model):
     status = models.CharField(max_length=50, choices=STATUS, default='ABERTO')
     filas = models.ManyToManyField(Fila)
     ultimo_desconto_aplicado = models.DurationField(default=timedelta)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 # Adicionei o 'null=true' pra resolver o erro:
 # (You are trying to add a non-nullable field 'inicio/fim/mes' to ticket without a default; we can't do that
@@ -163,7 +163,8 @@ class Desconto(models.Model):
             self.aplicado = False
 
         # Defina o campo 'auditor' com o nome de usuário do usuário logado
-        self.auditor = self.ticket.user.username
+        usuario_logado = getpass.getuser()
+        self.auditor = usuario_logado
 
         super().save(*args, **kwargs)
 
