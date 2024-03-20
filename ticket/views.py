@@ -230,7 +230,21 @@ def exporta_csv(request):
 
     return response
 
-    
+def get_descontos(request):
+    descontos = Desconto.objects.all()
+
+    print(descontos)
+
+    descontos_list = []
+    for desconto in descontos:
+        descontos_list.append({
+            'ticket': desconto.ticket.ticket,
+            'inicio': desconto.inicio,
+            'fim': desconto.fim,
+            'aplicado': desconto.aplicado
+        })
+        
+    return JsonResponse(descontos_list, safe=False)
 # def create_desconto(request, ticket_id):
 #     ticket = get_object_or_404(Ticket, pk=ticket_id)
 #     ticket.atendimento = ticket.atendimento_descontado()
