@@ -17,6 +17,18 @@ CATEGORIAS = (
     ('DESCONHECIDO', 'Desconhecido'),
 )
 
+CATEGORIAS_D = (
+    ('Acesso', 'Acesso'),
+    ('Aguardando CIGR', 'Aguardando CIGR'),
+    ('Área de Risco', 'Área de Risco'),
+    ('Atividade Agendada', 'Atividade Agendada'),
+    ('Falta de Energia', 'Falta de Energia'),
+    ('Sobressalente', 'Sobressalente'),
+    ('Terceiros', 'Terceiros'),
+    ('Falha Restabelecida', 'Falha Restabelecida'),
+    ('Outros', 'Outros'),
+)
+
 PRIORIDADES = (
     ('Alta', 'Alta'),
     ('Média', 'Média'),
@@ -129,6 +141,8 @@ class Desconto(models.Model):
     ticket = models.ForeignKey(
         'Ticket', related_name='descontos', on_delete=models.CASCADE)
     aplicado = models.BooleanField(default=False)
+    categoria = models.CharField(max_length=150, choices=CATEGORIAS_D)
+    auditor = models.CharField(max_length=150)
 
     def save(self, *args, **kwargs):
         inicio_ticket = timezone.make_aware(
