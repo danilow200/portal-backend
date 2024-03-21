@@ -270,6 +270,7 @@ def get_descontos(request):
     descontos_list = []
     for desconto in descontos:
         descontos_list.append({
+            'id': desconto.id,
             'ticket': desconto.ticket.ticket,
             'inicio': desconto.inicio,
             'fim': desconto.fim,
@@ -279,6 +280,58 @@ def get_descontos(request):
         })
         
     return JsonResponse(descontos_list, safe=False)
+
+@csrf_exempt
+def update_desconto(request, desconto_id):
+    if request.method == 'POST':
+        try:
+            # Obtém o desconto que precisa ser atualizado
+            desc = Desconto.objects.get(id=desconto_id)
+
+            # Carrega os dados do JSON
+            data = json.loads(request.body)
+
+            # Converte as strings de data e hora para objetos datetime
+            inicio_naive = datetime.strptime(data['inicio'], '%d/%m/%Y %H:%M:%S')
+            fim_naive = datetime.strptime(data['fim'], '%d/%m/%Y %H:%M:%S')
+
+            # Adiciona informações de fuso horário aos objetos datetime
+            inicio = timezone.make_aware(inicio_naive)
+            fim = timezone.make_aware(fim_naive)
+
+            # Atualiza os campos do desconto
+            desc.inicio = inicio
+            desc.fim = fim
+            desc.aplicado = data['aplicado']
+            desc.categoria = data['categoria']
+
+            # Salva o desconto atualizado
+            desc.save()
+
+            return JsonResponse({'status': 'success'}, status=200)
+        except ObjectDoesNotExist:
+            return JsonResponse({'error': 'Desconto not found'}, status=404)
+        except KeyError:
+            return JsonResponse({'error': 'Invalid data'}, status=400)
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+@csrf_exempt
+def delete_desconto(request, desconto_id):
+    if request.method == 'DELETE':
+        try:
+            # Obtém o ticket que precisa ser deletado
+            desc = Desconto.objects.get(id=desconto_id)
+
+            # Deleta o ticket
+            desc.delete()
+
+            return JsonResponse({'status': 'success'}, status=200)
+        except ObjectDoesNotExist:
+            return JsonResponse({'error': 'Desconto not found'}, status=404)
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+
 # def create_desconto(request, ticket_id):
 #     ticket = get_object_or_404(Ticket, pk=ticket_id)
 #     ticket.atendimento = ticket.atendimento_descontado()

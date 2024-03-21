@@ -16,6 +16,8 @@ urlpatterns =[
   path('delete_ticket/<int:ticket_id>/', views.delete_ticket, name='delete_ticket'),
   path('get_descontos/', views.get_descontos, name="get_descontos"),
   path('post_desconto/<int:ticket_id>/', views.post_desconto, name='post_desconto'),
+  path('update_desconto/<int:desconto_id>/', views.update_desconto, name='update_desconto'),
+  path('delete_desconto/<int:desconto_id>/', views.delete_desconto, name='delete_desconto'),
   path('exporta_csv/', views.exporta_csv, name='exporta_csv'),
 ] 
 
