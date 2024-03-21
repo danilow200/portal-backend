@@ -131,7 +131,7 @@ def get_tickets(request, filtros=None):
     prioridades = tickets.values_list("prioridade", flat=True).distinct()
     Status = tickets.values_list("status", flat=True).distinct()
     
-    print(prioridades)
+    print(prioridades) #teste
     print(Status)
 
     """if mes_atendimento or filtros:
