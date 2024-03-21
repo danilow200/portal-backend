@@ -127,14 +127,20 @@ def Import_Excel_pandas(request):
 def get_tickets(request, filtros=None):
     mes_atendimento = request.GET.get('mes_atendimento', None)
     tickets = Ticket.objects.all()
+    
+    prioridades = tickets.values_list("prioridade", flat=True).distinct()
+    Status = tickets.values_list("status", flat=True).distinct()
+    
+    print(prioridades)
+    print(Status)
 
-    if mes_atendimento or filtros:
+    """if mes_atendimento or filtros:
         tickets = tickets.filter(
             Q(mes=mes_atendimento) | Q(prioridade=filtros) | Q(categoria=filtros) |
             Q(status=filtros) | Q(filas__nome=filtros)
         ).distinct()
-
-    context = {"tickets": tickets}  # Tornar global
+    """
+    context = {"tickets": tickets, "prioridades":prioridades, "Status":Status}  # Tornar global
 
     # Prepara uma lista para armazenar os dados dos tickets
     tickets_list = []
@@ -179,7 +185,7 @@ def get_tickets(request, filtros=None):
             'descontos': descontos_list
         })
     # Retorna os tickets e as filas associadas como uma resposta HTTP
-    return JsonResponse(tickets_list, safe=False)
+    return JsonResponse(tickets_list, safe=False)#Perguntar sobre render request pra funcionar o "Filtros.html"
 
 
 @csrf_exempt
