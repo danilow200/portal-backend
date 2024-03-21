@@ -1,4 +1,5 @@
 # Importando as bibliotecas necessárias
+import json
 from django.http import HttpResponse, JsonResponse
 from django.core import serializers
 from django.shortcuts import render
@@ -13,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
+from django.utils import timezone
 
 mes_ticket= {
     '01': 'Janeiro',
@@ -145,7 +147,9 @@ def get_tickets(request, filtros=None):
             descontos_list.append({
                 'inicio': desconto.inicio,
                 'fim': desconto.fim,
-                'aplicado': desconto.aplicado
+                'aplicado': desconto.aplicado,
+                'categoria': desconto.categoria,
+                'auditor': desconto.auditor
             })
         # Adiciona os detalhes do ticket e das filas associadas à lista de tickets
         tickets_list.append({
@@ -230,10 +234,38 @@ def exporta_csv(request):
 
     return response
 
+@csrf_exempt
+def post_desconto(request, ticket_id):
+    if request.method == 'POST':
+        try:
+            ticket = Ticket.objects.get(ticket=ticket_id)
+
+            data = json.loads(request.body)
+            # Converte as strings de data e hora para objetos datetime
+            inicio_naive = datetime.strptime(data['inicio'], '%d/%m/%Y %H:%M:%S')
+            fim_naive = datetime.strptime(data['fim'], '%d/%m/%Y %H:%M:%S')
+
+            # Adiciona informações de fuso horário aos objetos datetime, estava tendo um problema por causa do GMT, então tive que adicionar o timezone
+            inicio = timezone.make_aware(inicio_naive)
+            fim = timezone.make_aware(fim_naive)
+
+            desc = Desconto()
+            desc.inicio = inicio
+            desc.fim = fim
+            desc.ticket = ticket
+            desc.aplicado = data['aplicado']
+            desc.categoria = data['categoria']
+
+            desc.save()
+
+            return JsonResponse({'status': 'success'}, status=200)
+        except ObjectDoesNotExist:
+            return JsonResponse({'error': 'Ticket not found'}, status=404)
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+
 def get_descontos(request):
     descontos = Desconto.objects.all()
-
-    print(descontos)
 
     descontos_list = []
     for desconto in descontos:
@@ -241,6 +273,8 @@ def get_descontos(request):
             'ticket': desconto.ticket.ticket,
             'inicio': desconto.inicio,
             'fim': desconto.fim,
+            'auditor': desconto.auditor,
+            'categoria': desconto.categoria,
             'aplicado': desconto.aplicado
         })
         
