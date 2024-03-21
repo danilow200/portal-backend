@@ -163,8 +163,8 @@ class Desconto(models.Model):
             self.aplicado = False
 
         # Defina o campo 'auditor' com o nome de usuário do usuário logado
-        usuario_logado = getpass.getuser()
-        self.auditor = usuario_logado
+        # usuario_logado = getpass.getuser()
+        # self.auditor = usuario_logado
 
         super().save(*args, **kwargs)
 

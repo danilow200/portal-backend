@@ -14,7 +14,7 @@ from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
 
-mes_ticket= {
+mes_ticket = {
     '01': 'Janeiro',
     '02': 'Fevereiro',
     '03': 'Março',
@@ -29,22 +29,27 @@ mes_ticket= {
     '12': 'Dezembro'
 }
 # Função para converter uma string de data e hora para o formato ISO 8601
+
+
 def convert_date(date_string):
-  date, time = date_string.split(' ')
-  day, month, year = date.split('/')
-  hour, minute, second = time.split(':')
-  return f'{year}-{month}-{day}T{hour}:{minute}:{second}.000Z'
+    date, time = date_string.split(' ')
+    day, month, year = date.split('/')
+    hour, minute, second = time.split(':')
+    return f'{year}-{month}-{day}T{hour}:{minute}:{second}.000Z'
+
 
 def convert_mes(date_string):
-    date,time = date_string.split(' ')
+    date, time = date_string.split(' ')
     day, month, year = date.split('/')
     return f'{mes_ticket[month]} - {year}'
+
 
 def convert_formato_sla(time_str):
     mm, ss = map(int, time_str.split(':'))
     hh = mm // 60
     mm = mm % 60
     return f"{hh:02d}:{mm:02d}:{ss:02d}"
+
 
 def compara_data(data1, data2):
     formato = "%d/%m/%Y %H:%M:%S"
@@ -56,15 +61,16 @@ def compara_data(data1, data2):
 
 @csrf_exempt
 def Import_Excel_pandas(request):
-    if request.method == 'POST' and 'myfile' in request.FILES: 
-        lista_de_filas = ['Campo Infraestrutura', 'Campo Despacho', 'Campo DWDM', 'GMP', 
+    if request.method == 'POST' and 'myfile' in request.FILES:
+        lista_de_filas = ['Campo Infraestrutura', 'Campo Despacho', 'Campo DWDM', 'GMP',
                           'Campo IP Core', 'Campo Ip Metro', 'Campo Fibra']
         myfile = request.FILES['myfile']
         fs = FileSystemStorage()
         filename = fs.save(myfile.name, myfile)
-        uploaded_file_url = fs.url(filename)              
+        uploaded_file_url = fs.url(filename)
 
-        empexceldata = pd.read_csv(filename, encoding='ISO-8859-1', index_col=False)
+        empexceldata = pd.read_csv(
+            filename, encoding='ISO-8859-1', index_col=False)
         empexceldata = empexceldata.loc[empexceldata['Incidente - ITSM.Número do incidente'] != ' ']
         dbframe = empexceldata
 
@@ -78,8 +84,10 @@ def Import_Excel_pandas(request):
 
             if row['Incidente - ITSM.Número do incidente do pai'] == ' ' and ticket_atual == row['Incidente - ITSM.Número do incidente']:
                 fila_nome = row['Tarefas do Incidente - ITSM.Grupo executor']
-                fila_entrada = convert_date(row['Tarefas do Incidente - ITSM.Entrou na fila em'])
-                fila_saida = convert_date(row['Tarefas do Incidente - ITSM.Tarefa executada em'])
+                fila_entrada = convert_date(
+                    row['Tarefas do Incidente - ITSM.Entrou na fila em'])
+                fila_saida = convert_date(
+                    row['Tarefas do Incidente - ITSM.Tarefa executada em'])
 
                 if compara_data(row['Tarefas do Incidente - ITSM.Entrou na fila em'], row['Incidente - ITSM.Data/hora de criação do incidente']):
                     valida = True
@@ -87,20 +95,22 @@ def Import_Excel_pandas(request):
                         if fila_test.entrada == fila_entrada or fila_test.saida == fila_saida:
                             valida = False
                     if valida:
-                        fila = Fila(nome=fila_nome, entrada=fila_entrada, saida=fila_saida)
+                        fila = Fila(nome=fila_nome,
+                                    entrada=fila_entrada, saida=fila_saida)
                         fila.save()
-                        
+
                         filas_salvas.append(fila)
 
-
             if any(fila_salva.nome in lista_de_filas for fila_salva in filas_salvas) and ticket_atual == row['Incidente - ITSM.Número do incidente']:
-                ticket = Ticket(ticket=row['Incidente - ITSM.Número do incidente'], estacao=row['Incidente - ITSM.Localização'], 
-                                descricao=row['Incidente - ITSM.Causa'], prioridade=row['Incidente - ITSM.Urgência'], 
-                                sla=convert_formato_sla(row['Incidente - ITSM.Prazo do SLA no formato H:MM']), 
-                                inicio= row['Incidente - ITSM.Data/hora de criação do incidente'], 
-                                fim= row['Incidente - ITSM.Fechado em_1'],
+                ticket = Ticket(ticket=row['Incidente - ITSM.Número do incidente'], estacao=row['Incidente - ITSM.Localização'],
+                                descricao=row['Incidente - ITSM.Causa'], prioridade=row['Incidente - ITSM.Urgência'],
+                                sla=convert_formato_sla(
+                                    row['Incidente - ITSM.Prazo do SLA no formato H:MM']),
+                                inicio=row['Incidente - ITSM.Data/hora de criação do incidente'],
+                                fim=row['Incidente - ITSM.Fechado em_1'],
                                 atendimento=row['Incidente - ITSM.Tempo total no formato H:MM:SS'],
-                                mes=convert_mes(row['Incidente - ITSM.Fechado em_1']) ,
+                                mes=convert_mes(
+                                    row['Incidente - ITSM.Fechado em_1']),
                                 categoria=row['Incidente - ITSM.Categoria de Atuação'], status='ABERTO')
                 ticket.save()  # Salve o objeto Ticket antes de adicionar uma Fila
                 ticket.filas.add(*filas_salvas)
@@ -108,8 +118,9 @@ def Import_Excel_pandas(request):
         return JsonResponse({
             'uploaded_file_url': uploaded_file_url,
             'message': 'Todas as operações de banco de dados foram concluídas.'
-        }) 
-    return render(request, 'Import_excel_db.html',{})
+        })
+    return render(request, 'Import_excel_db.html', {})
+
 
 def get_tickets(request, filtros=None):
     mes_atendimento = request.GET.get('mes_atendimento', None)
@@ -117,12 +128,12 @@ def get_tickets(request, filtros=None):
 
     if mes_atendimento or filtros:
         tickets = tickets.filter(
-            Q(mes=mes_atendimento) | Q(prioridade=filtros) | Q(categoria=filtros) | 
+            Q(mes=mes_atendimento) | Q(prioridade=filtros) | Q(categoria=filtros) |
             Q(status=filtros) | Q(filas__nome=filtros)
-            ).distinct()
-        
-    context = {"tickets": tickets} #Tornar global
-    
+        ).distinct()
+
+    context = {"tickets": tickets}  # Tornar global
+
     # Prepara uma lista para armazenar os dados dos tickets
     tickets_list = []
     # Itera sobre cada ticket
@@ -166,6 +177,7 @@ def get_tickets(request, filtros=None):
     # Retorna os tickets e as filas associadas como uma resposta HTTP
     return JsonResponse(tickets_list, safe=False)
 
+
 @csrf_exempt
 def update_ticket(request, ticket_id):
     if request.method == 'POST':
@@ -185,7 +197,8 @@ def update_ticket(request, ticket_id):
             return JsonResponse({'error': 'Ticket not found'}, status=404)
     else:
         return JsonResponse({'error': 'Invalid request'}, status=400)
-    
+
+
 @csrf_exempt
 def delete_ticket(request, ticket_id):
     if request.method == 'DELETE':
@@ -214,7 +227,8 @@ def exporta_csv(request):
     # Cria um escritor CSV
     writer = csv.writer(response)
     # Escreve o cabeçalho do CSV
-    writer.writerow(['Ticket', 'Estação', 'Descrição', 'Prioridade', 'SLA', 'Atendimento', 'Categoria', 'Status', 'Filas'])
+    writer.writerow(['Ticket', 'Estação', 'Descrição', 'Prioridade',
+                    'SLA', 'Atendimento', 'Categoria', 'Status', 'Filas'])
 
     # Obtém todos os tickets do banco de dados
     tickets = Ticket.objects.all()
@@ -226,9 +240,11 @@ def exporta_csv(request):
         # Prepara uma lista para armazenar os nomes das filas
         filas_nomes = [fila.nome for fila in filas]
         # Escreve os detalhes do ticket e das filas associadas no CSV
-        writer.writerow([ticket.ticket, ticket.estacao, ticket.descricao, ticket.prioridade, ticket.sla, ticket.atendimento, ticket.categoria, ticket.status, ', '.join(filas_nomes)])
+        writer.writerow([ticket.ticket, ticket.estacao, ticket.descricao, ticket.prioridade,
+                        ticket.sla, ticket.atendimento, ticket.categoria, ticket.status, ', '.join(filas_nomes)])
 
     return response
+
 
 def get_descontos(request):
     descontos = Desconto.objects.all()
@@ -243,8 +259,13 @@ def get_descontos(request):
             'fim': desconto.fim,
             'aplicado': desconto.aplicado
         })
-        
+
     return JsonResponse(descontos_list, safe=False)
+
+
+def define_auditor(request):
+    usuario_logado = request.user.username
+    Desconto.auditor = usuario_logado
 # def create_desconto(request, ticket_id):
 #     ticket = get_object_or_404(Ticket, pk=ticket_id)
 #     ticket.atendimento = ticket.atendimento_descontado()
