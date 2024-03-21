@@ -300,11 +300,6 @@ def get_descontos(request):
     return JsonResponse(descontos_list, safe=False)
 
 
-def define_auditor(request):
-    usuario_logado = request.user.username
-    Desconto.auditor = usuario_logado
-
-
 @csrf_exempt
 def update_desconto(request, desconto_id):
     if request.method == 'POST':
