@@ -188,6 +188,10 @@ def get_tickets(request, filtros=None):
     return JsonResponse(tickets_list, safe=False)#Perguntar sobre render request pra funcionar o "Filtros.html"
 
 
+def define_auditor(request):
+    desconto = Desconto(...)
+    desconto.save(auditor=request.user) 
+
 @csrf_exempt
 def update_ticket(request, ticket_id):
     if request.method == 'POST':
