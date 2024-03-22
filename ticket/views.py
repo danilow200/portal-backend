@@ -124,24 +124,29 @@ def Import_Excel_pandas(request):
     return render(request, 'Import_excel_db.html', {})
 
 
-def get_tickets(request, filtros=None):
+def get_tickets(request):
     mes_atendimento = request.GET.get('mes_atendimento', None)
     tickets = Ticket.objects.all()
     
+    if mes_atendimento:
+        tickets = tickets.filter(mes=mes_atendimento).distinct()
+    
+    #Logica pra receber as infomações do formulario(filtros) e exibir apenas os filtros selecionados(Ex:prioridades)
+    if request.method == 'POST':
+        dados = request.POST.dict() #recebe os dados do formulario
+        if "prioridade" in dados:
+            tickets = tickets.filter(prioridade=dados.get("prioridade"))
+            #ids_tickets = tickets.values_list("ticket", flat=True).distinct()
+            #tickets = tickets.filter(ticket__in=ids_tickets)
+            
+    #Logica pra mostrar apenas as prioridades existentes na hora do usuário selecionar os filtros
     prioridades = tickets.values_list("prioridade", flat=True).distinct()
     Status = tickets.values_list("status", flat=True).distinct()
-    
-    print(prioridades) #teste
+    print(prioridades)
     print(Status)
 
-    """if mes_atendimento or filtros:
-        tickets = tickets.filter(
-            Q(mes=mes_atendimento) | Q(prioridade=filtros) | Q(categoria=filtros) |
-            Q(status=filtros) | Q(filas__nome=filtros)
-        ).distinct()
-    """
-    context = {"tickets": tickets, "prioridades":prioridades, "Status":Status}  # Tornar global
-
+    context = {"tickets": tickets, "prioridades":prioridades, "Status":Status}
+    
     # Prepara uma lista para armazenar os dados dos tickets
     tickets_list = []
     # Itera sobre cada ticket
@@ -184,9 +189,11 @@ def get_tickets(request, filtros=None):
             'filas': filas_list,
             'descontos': descontos_list
         })
+    
+    #return render(request, 'get_tickets.html', context) Descomentar essa linha caso queira testar os filtros
+    
     # Retorna os tickets e as filas associadas como uma resposta HTTP
-    return JsonResponse(tickets_list, safe=False)#Perguntar sobre render request pra funcionar o "Filtros.html"
-
+    return JsonResponse(tickets_list, safe=False)
 
 def define_auditor(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
@@ -196,7 +203,7 @@ def define_auditor(request, ticket_id):
         desconto = Desconto(ticket=ticket)
        
         # Aqui passamos o request.user para o save
-        desconto.save(request.user) 
+        desconto.save(request.user)
 
 @csrf_exempt
 def update_ticket(request, ticket_id):
