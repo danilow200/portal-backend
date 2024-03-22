@@ -140,10 +140,16 @@ class Desconto(models.Model):
         'Ticket', related_name='descontos', on_delete=models.CASCADE)
     aplicado = models.BooleanField(default=False)
     categoria = models.CharField(max_length=150, choices=CATEGORIAS_D)
-    auditor = models.ForeignKey(User, on_delete=models.CASCADE, blank=True)
+    auditor = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null = True)
 
 
-    def save(self, auditor = None, *args, **kwargs):
+    def save(self, *args, **kwargs):
+        # Se tem um usuário autenticado, atribuimos ao auditor
+        usuario_autenticado = kwargs.pop('username', None)
+       
+        if usuario_autenticado:
+           self.auditor = usuario_autenticado
+
         inicio_ticket = timezone.make_aware(
             datetime.strptime(self.ticket.inicio, "%d/%m/%Y %H:%M:%S"))
         fim_ticket = timezone.make_aware(
@@ -153,8 +159,6 @@ class Desconto(models.Model):
             raise ValueError(
                 "Os campos 'inicio' e 'fim' do Desconto devem estar dentro do intervalo do Ticket correspondente.")
 
-        if auditor is not None:
-            self.auditor = auditor
 
         desconto_atual = self.fim - self.inicio
         diferenca_desconto = desconto_atual - self.desconto_anterior
