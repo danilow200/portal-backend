@@ -23,7 +23,8 @@
 <p>TICKETS</p>
 {% for ticket in tickets %}
 <p>ticket: {{ ticket.ticket }}</p>
-<p>Preço: {{ ticket.descricao }}</p>
+<p>descrição: {{ ticket.descricao }}</p>
+<p>prioridade: {{ ticket.prioridade }}</p>
 {% endfor %}
 
 {% endblock %}

@@ -124,6 +124,7 @@ def Import_Excel_pandas(request):
     return render(request, 'Import_excel_db.html', {})
 
 
+@csrf_exempt
 def get_tickets(request):
     mes_atendimento = request.GET.get('mes_atendimento', None)
     tickets = Ticket.objects.all()
@@ -190,7 +191,8 @@ def get_tickets(request):
             'descontos': descontos_list
         })
     
-    #return render(request, 'get_tickets.html', context) Descomentar essa linha caso queira testar os filtros
+    # Descomentar essa linha caso queira testar os filtros
+    # return render(request, 'get_tickets.html', context) 
     
     # Retorna os tickets e as filas associadas como uma resposta HTTP
     return JsonResponse(tickets_list, safe=False)
