@@ -413,7 +413,7 @@ def busca_ticket(request):
                     'categoria': ticket.categoria,
                     'status': ticket.status,
                     'ultimo_desconto_aplicado': str(ticket.ultimo_desconto_aplicado),
-                    'descontos': list(ticket.descontos.values()),
+                    'descontos': descontos,
                     'filas': list(ticket.filas.values()),
                 }
 
