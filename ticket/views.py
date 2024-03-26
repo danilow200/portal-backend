@@ -383,8 +383,41 @@ def busca_ticket(request):
         query = request.GET.get('q')
         if query:
             tickets = Ticket.objects.filter(
-                Q(ticket=query))
-            results = list(tickets.values())
+                ticket=query).prefetch_related('descontos', 'filas')
+            results = []
+
+            for ticket in tickets:
+                descontos = []
+
+                for desconto in ticket.descontos.all():
+                    descontos.append({
+                        'id': desconto.id,
+                        'inicio': desconto.inicio.strftime('%d/%m/%Y %H:%M:%S'),
+                        'fim': desconto.fim.strftime('%d/%m/%Y %H:%M:%S'),
+                        'desconto_anterior': str(desconto.desconto_anterior),
+                        'ticket_id': desconto.ticket_id,
+                        'aplicado': desconto.aplicado,
+                        'categoria': desconto.categoria,
+                        'auditor_id': desconto.auditor_id if desconto.auditor else None,
+                    })
+                ticket_dict = {
+                    'ticket': ticket.ticket,
+                    'estacao': ticket.estacao,
+                    'descricao': ticket.descricao,
+                    'prioridade': ticket.prioridade,
+                    'sla': ticket.sla,
+                    'inicio': ticket.inicio,
+                    'fim': ticket.fim,
+                    'atendimento': ticket.atendimento,
+                    'mes': ticket.mes,
+                    'categoria': ticket.categoria,
+                    'status': ticket.status,
+                    'ultimo_desconto_aplicado': str(ticket.ultimo_desconto_aplicado),
+                    'descontos': list(ticket.descontos.values()),
+                    'filas': list(ticket.filas.values()),
+                }
+
+                results.append(ticket_dict)
         else:
             results = []
 
