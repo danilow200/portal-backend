@@ -376,9 +376,28 @@ def delete_desconto(request, desconto_id):
             return JsonResponse({'error': 'Desconto not found'}, status=404)
     else:
         return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    
+@csrf_exempt
+def busca_ticket(request):
+    try:
+        query = request.GET.get('q')
+        if query:
+            tickets = Ticket.objects.filter(
+                Q(ticket=query))
+            results = list(tickets.values())
+        else:
+            results = []
+
+        return JsonResponse(results, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+    
 
 # def create_desconto(request, ticket_id):
 #     ticket = get_object_or_404(Ticket, pk=ticket_id)
 #     ticket.atendimento = ticket.atendimento_descontado()
 #     print(ticket.atendimento)
 #     # ticket.save()
+
+
