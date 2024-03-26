@@ -126,11 +126,7 @@ def Import_Excel_pandas(request):
 
 @csrf_exempt
 def get_tickets(request):
-    mes_atendimento = request.GET.get('mes_atendimento', None)
     tickets = Ticket.objects.all()
-
-    if mes_atendimento:
-        tickets = tickets.filter(mes=mes_atendimento).distinct()
 
     # Logica pra receber as infomações do formulario(filtros) e exibir apenas os filtros selecionados(Ex:prioridades)
     if request.method == 'POST':
@@ -192,10 +188,10 @@ def get_tickets(request):
         })
 
     # Descomentar essa linha caso queira testar os filtros
-    return render(request, 'get_tickets.html', context)
+    # return render(request, 'get_tickets.html', context)
 
     # Retorna os tickets e as filas associadas como uma resposta HTTP
-    # return JsonResponse(tickets_list, safe=False)
+    return JsonResponse(tickets_list, safe=False)
 
 
 def define_auditor(request, ticket_id):
