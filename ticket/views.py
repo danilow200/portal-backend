@@ -128,25 +128,26 @@ def Import_Excel_pandas(request):
 def get_tickets(request):
     mes_atendimento = request.GET.get('mes_atendimento', None)
     tickets = Ticket.objects.all()
-    
+
     if mes_atendimento:
         tickets = tickets.filter(mes=mes_atendimento).distinct()
-    
-    #Logica pra receber as infomações do formulario(filtros) e exibir apenas os filtros selecionados(Ex:prioridades)
+
+    # Logica pra receber as infomações do formulario(filtros) e exibir apenas os filtros selecionados(Ex:prioridades)
     if request.method == 'POST':
-        dados = request.POST.dict() #recebe os dados do formulario
+        dados = request.POST.dict()  # recebe os dados do formulario
         if "prioridade" in dados:
             tickets = tickets.filter(prioridade=dados.get("prioridade"))
         if "mes" in dados:
             tickets = tickets.filter(mes=dados.get("mes"))
-        
-    #Logica pra mostrar apenas as prioridades existentes na hora do usuário selecionar os filtros
+
+    # Logica pra mostrar apenas as prioridades existentes na hora do usuário selecionar os filtros
     prioridades = tickets.values_list("prioridade", flat=True).distinct()
     Status = tickets.values_list("status", flat=True).distinct()
     categorias = tickets.values_list("categoria", flat=True).distinct()
 
-    context = {"tickets": tickets, "prioridades":prioridades, "Status":Status, "categorias": categorias}
-    
+    context = {"tickets": tickets, "prioridades": prioridades,
+               "Status": Status, "categorias": categorias}
+
     # Prepara uma lista para armazenar os dados dos tickets
     tickets_list = []
     # Itera sobre cada ticket
@@ -189,22 +190,24 @@ def get_tickets(request):
             'filas': filas_list,
             'descontos': descontos_list
         })
-    
+
     # Descomentar essa linha caso queira testar os filtros
     return render(request, 'get_tickets.html', context)
-    
+
     # Retorna os tickets e as filas associadas como uma resposta HTTP
-    #return JsonResponse(tickets_list, safe=False)
+    # return JsonResponse(tickets_list, safe=False)
+
 
 def define_auditor(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
-   
+
     if request.method == "POST":
         # Apenas um exemplo, adapte de acordo com as suas necessidades
         desconto = Desconto(ticket=ticket)
-       
+
         # Aqui passamos o request.user para o save
         desconto.save(request.user)
+
 
 @csrf_exempt
 def update_ticket(request, ticket_id):
@@ -376,8 +379,8 @@ def delete_desconto(request, desconto_id):
             return JsonResponse({'error': 'Desconto not found'}, status=404)
     else:
         return JsonResponse({'error': 'Invalid request'}, status=400)
-    
-    
+
+
 @csrf_exempt
 def busca_ticket(request):
     try:
@@ -392,12 +395,3 @@ def busca_ticket(request):
         return JsonResponse(results, safe=False)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-    
-
-# def create_desconto(request, ticket_id):
-#     ticket = get_object_or_404(Ticket, pk=ticket_id)
-#     ticket.atendimento = ticket.atendimento_descontado()
-#     print(ticket.atendimento)
-#     # ticket.save()
-
-
