@@ -133,21 +133,22 @@ class Ticket(models.Model):
 
 
 class Desconto(models.Model):
-    inicio = models.DateTimeField(default=timezone.now)
-    fim = models.DateTimeField(default=timezone.now)
+    inicio = models.DateTimeField(default=datetime.min)
+    fim = models.DateTimeField(default=datetime.min)
     desconto_anterior = models.DurationField(default=timedelta)
     ticket = models.ForeignKey(
         'Ticket', related_name='descontos', on_delete=models.CASCADE)
     aplicado = models.BooleanField(default=False)
     aplicado_anterior = models.BooleanField(default=False)
     categoria = models.CharField(max_length=150, choices=CATEGORIAS_D)
-    auditor = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null = True)
+    auditor = models.ForeignKey(
+        User, on_delete=models.CASCADE, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         usuario_autenticado = kwargs.pop('username', None)
-       
+
         if usuario_autenticado:
-           self.auditor = usuario_autenticado
+            self.auditor = usuario_autenticado
 
         inicio_ticket = timezone.make_aware(
             datetime.strptime(self.ticket.inicio, "%d/%m/%Y %H:%M:%S"))
@@ -166,7 +167,7 @@ class Desconto(models.Model):
             if not self.desconto_anterior == desconto_atual:
                 self.ticket.aplicar_desconto(diferenca_desconto)
                 self.desconto_anterior = desconto_atual
-        
+
         super().save(*args, **kwargs)
 
         if self.aplicado and not self.desconto_anterior == desconto_atual:
