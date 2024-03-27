@@ -400,7 +400,7 @@ def busca_ticket(request):
                         'ticket_id': desconto.ticket_id,
                         'aplicado': desconto.aplicado,
                         'categoria': desconto.categoria,
-                        'auditor_id': desconto.auditor_id if desconto.auditor else None,
+                        'auditor': desconto.auditor.username if desconto.auditor else None,
                     })
                 ticket_dict = {
                     'ticket': ticket.ticket,
