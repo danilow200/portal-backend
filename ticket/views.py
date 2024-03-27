@@ -135,6 +135,8 @@ def get_tickets(request):
             tickets = tickets.filter(prioridade=dados.get("prioridade"))
         if "mes" in dados:
             tickets = tickets.filter(mes=dados.get("mes"))
+        if "categoria" in dados:
+            tickets = tickets.filter(categoria=dados.get("categoria"))
 
     # Logica pra mostrar apenas as prioridades existentes na hora do usuário selecionar os filtros
     prioridades = tickets.values_list("prioridade", flat=True).distinct()
