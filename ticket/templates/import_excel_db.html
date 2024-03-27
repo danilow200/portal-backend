@@ -23,4 +23,9 @@
     </div>
   </div>
 </form>
-{% endblock %}
+
+{% if user.is_authenticated %}
+<p>Usuário autenticado: {{ user.username }}</p>
+{%else%}
+<p>Usuário não autenticado</p>
+{% endif %} {% endblock %}
