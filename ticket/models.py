@@ -139,16 +139,15 @@ class Desconto(models.Model):
     ticket = models.ForeignKey(
         'Ticket', related_name='descontos', on_delete=models.CASCADE)
     aplicado = models.BooleanField(default=False)
+    aplicado_anterior = models.BooleanField(default=False)
     categoria = models.CharField(max_length=150, choices=CATEGORIAS_D)
-    auditor = models.ForeignKey(
-        User, on_delete=models.CASCADE, blank=True, null=True)
+    auditor = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null = True)
 
     def save(self, *args, **kwargs):
-        # Se tem um usuário autenticado, atribuimos ao auditor
         usuario_autenticado = kwargs.pop('username', None)
-
+       
         if usuario_autenticado:
-            self.auditor = usuario_autenticado
+           self.auditor = usuario_autenticado
 
         inicio_ticket = timezone.make_aware(
             datetime.strptime(self.ticket.inicio, "%d/%m/%Y %H:%M:%S"))
@@ -162,19 +161,22 @@ class Desconto(models.Model):
         desconto_atual = self.fim - self.inicio
         diferenca_desconto = desconto_atual - self.desconto_anterior
 
-        if diferenca_desconto != timedelta(0):
-            self.aplicado = False
-
-        # Defina o campo 'auditor' com o nome de usuário do usuário logado
-        # usuario_logado = getpass.getuser()
-        # self.auditor = usuario_logado
-
+        if self.aplicado:
+            self.aplicado_anterior = True
+            if not self.desconto_anterior == desconto_atual:
+                self.ticket.aplicar_desconto(diferenca_desconto)
+                self.desconto_anterior = desconto_atual
+        
         super().save(*args, **kwargs)
 
-        if not self.aplicado:
+        if self.aplicado and not self.desconto_anterior == desconto_atual:
             self.ticket.aplicar_desconto(diferenca_desconto)
-            self.aplicado = True
             self.desconto_anterior = desconto_atual
+            super().save(*args, **kwargs)
+
+        if self.aplicado_anterior and not self.aplicado:
+            self.ticket.reverter_desconto(self.desconto_anterior)
+            self.desconto_anterior = timedelta()
             super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
