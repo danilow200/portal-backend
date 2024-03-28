@@ -137,14 +137,8 @@ def get_tickets(request):
             tickets = tickets.filter(mes=dados.get("mes"))
         if "categoria" in dados:
             tickets = tickets.filter(categoria=dados.get("categoria"))
-
-    # Logica pra mostrar apenas as prioridades existentes na hora do usuário selecionar os filtros
-    prioridades = tickets.values_list("prioridade", flat=True).distinct()
-    Status = tickets.values_list("status", flat=True).distinct()
-    categorias = tickets.values_list("categoria", flat=True).distinct()
-
-    context = {"tickets": tickets, "prioridades": prioridades,
-               "Status": Status, "categorias": categorias}
+            
+    context = {"tickets": tickets}
 
     # Prepara uma lista para armazenar os dados dos tickets
     tickets_list = []
@@ -188,10 +182,10 @@ def get_tickets(request):
             'filas': filas_list,
             'descontos': descontos_list
         })
-
-    # Descomentar essa linha caso queira testar os filtros
-    # return render(request, 'get_tickets.html', context)
-
+    
+    #Return pra renderizar 'get_tickets.html'
+    #return render(request, 'get_tickets.html', context)
+        
     # Retorna os tickets e as filas associadas como uma resposta HTTP
     return JsonResponse(tickets_list, safe=False)
 

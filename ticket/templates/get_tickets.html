@@ -1,33 +1,12 @@
 {% extends 'base.html' %}
 {% block body %}
 
-{% if prioridades %}
-<form method="POST" action="">
-    {% csrf_token %}
-    <p>Selecione a prioridade:</p>
-    {% for prioridade in prioridades %}
-    <input type="radio" name="prioridade" value="{{ prioridade }}">
-    <label for="{{ prioridade }}"> {{ prioridade }} </label>
-    <br>
-    {% endfor %}
-    <p>Selecione o STATUS:</p>
-    {% for status in Status %}
-    <input type="radio" name="status" value="{{ status }}">
-    <label for="{{ status }}"> {{ status }} </label>
-    <br>
-    {% endfor %}
-    <button type="submit"> Aplicar </button>
-</form>
-{% endif %}
-
 <p>TICKETS</p>
 {% for ticket in tickets %}
-<p>ticket: {{ ticket.ticket }}</p>
-<p>descrição: {{ ticket.descricao }}</p>
-<p>prioridade: {{ ticket.prioridade }}</p>
+<p>Ticket: {{ ticket.ticket }}</p>
+<p>Descrição: {{ ticket.descricao }}</p>
+<p>Prioridade: {{ ticket.prioridade }}</p>
+<p>---------------------------------------</p>
 {% endfor %}
 
 {% endblock %}
-
-
-
