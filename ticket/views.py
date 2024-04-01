@@ -164,7 +164,7 @@ def get_tickets(request):
                 'fim': desconto.fim,
                 'aplicado': desconto.aplicado,
                 'categoria': desconto.categoria,
-                'auditor': desconto.auditor
+                'auditor': desconto.auditor.username
             })
         # Adiciona os detalhes do ticket e das filas associadas à lista de tickets
         tickets_list.append({
@@ -309,9 +309,10 @@ def get_descontos(request):
         descontos_list.append({
             'id': desconto.id,
             'ticket': desconto.ticket.ticket,
+            'estacao': desconto.ticket.estacao,
             'inicio': desconto.inicio,
             'fim': desconto.fim,
-            'auditor': desconto.auditor,
+            'auditor': desconto.auditor.username,
             'categoria': desconto.categoria,
             'aplicado': desconto.aplicado
         })
