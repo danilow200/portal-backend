@@ -27,6 +27,7 @@ urlpatterns = [
     path('exporta_csv/', views.exporta_csv, name='exporta_csv'),
     path('busca_ticket/',
          views.busca_ticket, name='busca_ticket'),
+    path('busca_desconto/', views.busca_desconto, name='busca_desconto')
 ]
 
 # Se o modo DEBUG estiver ativado nas configurações

@@ -137,7 +137,7 @@ def get_tickets(request):
             tickets = tickets.filter(mes=dados.get("mes"))
         if "categoria" in dados:
             tickets = tickets.filter(categoria=dados.get("categoria"))
-            
+
     context = {"tickets": tickets}
 
     # Prepara uma lista para armazenar os dados dos tickets
@@ -163,7 +163,8 @@ def get_tickets(request):
             total_hours = total.days * 24 + total.seconds // 3600
             minutes = (total.seconds // 60) % 60
             seconds = total.seconds % 60
-            total_formatado = "{:02d}:{:02d}:{:02d}".format(total_hours, minutes, seconds)
+            total_formatado = "{:02d}:{:02d}:{:02d}".format(
+                total_hours, minutes, seconds)
             descontos_list.append({
                 'id': desconto.id,
                 'ticket': desconto.ticket.ticket,
@@ -191,10 +192,10 @@ def get_tickets(request):
             'filas': filas_list,
             'descontos': descontos_list
         })
-    
-    #Return pra renderizar 'get_tickets.html'
-    #return render(request, 'get_tickets.html', context)
-        
+
+    # Return pra renderizar 'get_tickets.html'
+    # return render(request, 'get_tickets.html', context)
+
     # Retorna os tickets e as filas associadas como uma resposta HTTP
     return JsonResponse(tickets_list, safe=False)
 
@@ -319,7 +320,8 @@ def get_descontos(request):
         total_hours = total.days * 24 + total.seconds // 3600
         minutes = (total.seconds // 60) % 60
         seconds = total.seconds % 60
-        total_formatado = "{:02d}:{:02d}:{:02d}".format(total_hours, minutes, seconds)
+        total_formatado = "{:02d}:{:02d}:{:02d}".format(
+            total_hours, minutes, seconds)
         descontos_list.append({
             'id': desconto.id,
             'ticket': desconto.ticket.ticket,
@@ -398,6 +400,8 @@ def busca_ticket(request):
                 ticket=query).prefetch_related('descontos', 'filas')
             results = []
 
+            print(tickets)
+
             for ticket in tickets:
                 descontos = []
 
@@ -406,7 +410,8 @@ def busca_ticket(request):
                     total_hours = total.days * 24 + total.seconds // 3600
                     minutes = (total.seconds // 60) % 60
                     seconds = total.seconds % 60
-                    total_formatado = "{:02d}:{:02d}:{:02d}".format(total_hours, minutes, seconds)
+                    total_formatado = "{:02d}:{:02d}:{:02d}".format(
+                        total_hours, minutes, seconds)
                     descontos.append({
                         'id': desconto.id,
                         'ticket': desconto.ticket.ticket,
@@ -436,6 +441,64 @@ def busca_ticket(request):
                 }
 
                 results.append(ticket_dict)
+        else:
+            results = []
+
+        return JsonResponse(results, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def busca_desconto(request):
+    try:
+        query = request.GET.get('q')
+        if query:
+            descontos = Desconto.objects.filter(
+                ticket=query)
+            results = []
+
+            print(descontos)
+
+            for desconto in descontos:
+                print(desconto.id)
+                total = desconto.fim - desconto.inicio
+                total_hours = total.days * 24 + total.seconds // 3600
+                minutes = (total.seconds // 60) % 60
+                seconds = total.seconds % 60
+                total_formatado = "{:02d}:{:02d}:{:02d}".format(
+                    total_hours, minutes, seconds)
+
+                ticket = desconto.ticket
+
+                ticket_dict = {
+                    'ticket': ticket.ticket,
+                    'estacao': ticket.estacao,
+                    'descricao': ticket.descricao,
+                    'prioridade': ticket.prioridade,
+                    'sla': ticket.sla,
+                    'inicio': ticket.inicio,
+                    'fim': ticket.fim,
+                    'atendimento': ticket.atendimento,
+                    'mes': ticket.mes,
+                    'categoria': ticket.categoria,
+                    'status': ticket.status,
+                    'ultimo_desconto_aplicado': str(ticket.ultimo_desconto_aplicado),
+                }
+
+                desconto_dict = {
+                    'id': desconto.id,
+                    'inicio': desconto.inicio.strftime("%d/%m/%Y %H:%M:%S"),
+                    'fim': desconto.fim.strftime("%d/%m/%Y %H:%M:%S"),
+                    'total': total_formatado,
+                    'categoria': desconto.categoria,
+                    'aplicado': desconto.aplicado,
+                    'auditor': desconto.auditor.username if desconto.auditor else None,
+                    'observacao': desconto.observacao,
+                    'ticket': ticket_dict,
+                }
+
+                results.append(desconto_dict)
         else:
             results = []
 
