@@ -138,6 +138,7 @@ class Desconto(models.Model):
     desconto_anterior = models.DurationField(default=timedelta)
     ticket = models.ForeignKey(
         'Ticket', related_name='descontos', on_delete=models.CASCADE)
+    observacao = models.CharField(max_length=500, blank=True, null=True)
     aplicado = models.BooleanField(default=False)
     aplicado_anterior = models.BooleanField(default=False)
     categoria = models.CharField(max_length=150, choices=CATEGORIAS_D)
