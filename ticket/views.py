@@ -158,13 +158,22 @@ def get_tickets(request):
 
         descontos = ticket.descontos.all()
         descontos_list = []
-        for desconto in descontos:
+        for desconto in ticket.descontos.all():
+            total = desconto.fim - desconto.inicio
+            total_hours = total.days * 24 + total.seconds // 3600
+            minutes = (total.seconds // 60) % 60
+            seconds = total.seconds % 60
+            total_formatado = "{:02d}:{:02d}:{:02d}".format(total_hours, minutes, seconds)
             descontos_list.append({
-                'inicio': desconto.inicio,
-                'fim': desconto.fim,
-                'aplicado': desconto.aplicado,
+                'id': desconto.id,
+                'ticket': desconto.ticket.ticket,
+                'estacao': desconto.ticket.estacao,
+                'inicio': desconto.inicio.strftime("%d/%m/%Y %H:%M:%S"),
+                'fim': desconto.fim.strftime("%d/%m/%Y %H:%M:%S"),
+                'total': total_formatado,
                 'categoria': desconto.categoria,
-                'auditor': desconto.auditor.username
+                'aplicado': desconto.aplicado,
+                'auditor': desconto.auditor.username,
             })
         # Adiciona os detalhes do ticket e das filas associadas à lista de tickets
         tickets_list.append({
@@ -306,12 +315,18 @@ def get_descontos(request):
 
     descontos_list = []
     for desconto in descontos:
+        total = desconto.fim - desconto.inicio
+        total_hours = total.days * 24 + total.seconds // 3600
+        minutes = (total.seconds // 60) % 60
+        seconds = total.seconds % 60
+        total_formatado = "{:02d}:{:02d}:{:02d}".format(total_hours, minutes, seconds)
         descontos_list.append({
             'id': desconto.id,
             'ticket': desconto.ticket.ticket,
             'estacao': desconto.ticket.estacao,
-            'inicio': desconto.inicio,
-            'fim': desconto.fim,
+            'inicio': desconto.inicio.strftime("%d/%m/%Y %H:%M:%S"),
+            'fim': desconto.fim.strftime("%d/%m/%Y %H:%M:%S"),
+            'total': total_formatado,
             'auditor': desconto.auditor.username,
             'categoria': desconto.categoria,
             'aplicado': desconto.aplicado
@@ -387,14 +402,20 @@ def busca_ticket(request):
                 descontos = []
 
                 for desconto in ticket.descontos.all():
+                    total = desconto.fim - desconto.inicio
+                    total_hours = total.days * 24 + total.seconds // 3600
+                    minutes = (total.seconds // 60) % 60
+                    seconds = total.seconds % 60
+                    total_formatado = "{:02d}:{:02d}:{:02d}".format(total_hours, minutes, seconds)
                     descontos.append({
                         'id': desconto.id,
-                        'inicio': desconto.inicio.strftime('%d/%m/%Y %H:%M:%S'),
-                        'fim': desconto.fim.strftime('%d/%m/%Y %H:%M:%S'),
-                        'desconto_anterior': str(desconto.desconto_anterior),
-                        'ticket_id': desconto.ticket_id,
-                        'aplicado': desconto.aplicado,
+                        'ticket': desconto.ticket.ticket,
+                        'estacao': desconto.ticket.estacao,
+                        'inicio': desconto.inicio.strftime("%d/%m/%Y %H:%M:%S"),
+                        'fim': desconto.fim.strftime("%d/%m/%Y %H:%M:%S"),
+                        'total': total_formatado,
                         'categoria': desconto.categoria,
+                        'aplicado': desconto.aplicado,
                         'auditor': desconto.auditor.username if desconto.auditor else None,
                     })
                 ticket_dict = {
