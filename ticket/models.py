@@ -89,7 +89,7 @@ class Ticket(models.Model):
     categoria = models.CharField(max_length=50, choices=CATEGORIAS)
     status = models.CharField(max_length=50, choices=STATUS, default='ABERTO')
     filas = models.ManyToManyField(Fila)
-    ultimo_desconto_aplicado = models.DurationField(default=timedelta)
+    total_desconto = models.DurationField(default=timedelta)
 
     def __str__(self):
         return str(self.ticket)
@@ -103,7 +103,8 @@ class Ticket(models.Model):
             self.save()
             return
 
-        self.ultimo_desconto_aplicado = desconto
+        # self.ultimo_desconto_aplicado = desconto
+        self.total_desconto += desconto
         self.atendimento = self.atendimento_descontado(desconto)
         self.save()
 
@@ -118,6 +119,7 @@ class Ticket(models.Model):
         segundos_revertidos = total_seconds % 60
 
         self.atendimento = f"{horas_revertidas:02d}:{minutos_revertidos:02d}:{segundos_revertidos:02d}"
+        self.total_desconto -= desconto
         self.save()
 
     def save(self, *args, **kwargs):
@@ -171,11 +173,6 @@ class Desconto(models.Model):
 
         super().save(*args, **kwargs)
 
-        if self.aplicado and not self.desconto_anterior == desconto_atual:
-            self.ticket.aplicar_desconto(diferenca_desconto)
-            self.desconto_anterior = desconto_atual
-            super().save(*args, **kwargs)
-
         if self.aplicado_anterior and not self.aplicado:
             self.ticket.reverter_desconto(self.desconto_anterior)
             self.desconto_anterior = timedelta()
@@ -183,7 +180,7 @@ class Desconto(models.Model):
 
     def delete(self, *args, **kwargs):
         desconto = self.fim - self.inicio
-        self.ticket.reverter_desconto(desconto)
+        self.ticket.reverter_desconto(self.desconto_anterior)
         super().delete(*args, **kwargs)
 
     def __str__(self):
