@@ -142,7 +142,6 @@ class Desconto(models.Model):
         'Ticket', related_name='descontos', on_delete=models.CASCADE)
     observacao = models.CharField(max_length=500, blank=True, null=True)
     aplicado = models.BooleanField(default=False)
-    aplicado_anterior = models.BooleanField(default=False)
     categoria = models.CharField(max_length=150, choices=CATEGORIAS_D)
     auditor = models.ForeignKey(
         User, on_delete=models.CASCADE, blank=True, null=True)
@@ -166,14 +165,13 @@ class Desconto(models.Model):
         diferenca_desconto = desconto_atual - self.desconto_anterior
 
         if self.aplicado:
-            self.aplicado_anterior = True
             if not self.desconto_anterior == desconto_atual:
                 self.ticket.aplicar_desconto(diferenca_desconto)
                 self.desconto_anterior = desconto_atual
 
         super().save(*args, **kwargs)
 
-        if self.aplicado_anterior and not self.aplicado:
+        if not self.aplicado:
             self.ticket.reverter_desconto(self.desconto_anterior)
             self.desconto_anterior = timedelta()
             super().save(*args, **kwargs)
