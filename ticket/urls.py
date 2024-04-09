@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 from backend import settings
 from django.conf.urls.static import static
+from . import rotina
 
 # Definindo as rotas da aplicação
 urlpatterns = [
@@ -27,7 +28,8 @@ urlpatterns = [
     path('exporta_csv/', views.exporta_csv, name='exporta_csv'),
     path('busca_ticket/',
          views.busca_ticket, name='busca_ticket'),
-    path('busca_desconto/', views.busca_desconto, name='busca_desconto')
+    path('busca_desconto/', views.busca_desconto, name='busca_desconto'),
+    path('rotina/', rotina.rotina, name='rotina'),
 ]
 
 # Se o modo DEBUG estiver ativado nas configurações
