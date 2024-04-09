@@ -177,7 +177,6 @@ class Desconto(models.Model):
             super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        desconto = self.fim - self.inicio
         self.ticket.reverter_desconto(self.desconto_anterior)
         super().delete(*args, **kwargs)
 
