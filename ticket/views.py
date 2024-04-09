@@ -435,7 +435,6 @@ def busca_ticket(request):
                     'mes': ticket.mes,
                     'categoria': ticket.categoria,
                     'status': ticket.status,
-                    'ultimo_desconto_aplicado': str(ticket.ultimo_desconto_aplicado),
                     'descontos': descontos,
                     'filas': list(ticket.filas.values()),
                 }
@@ -483,7 +482,6 @@ def busca_desconto(request):
                     'mes': ticket.mes,
                     'categoria': ticket.categoria,
                     'status': ticket.status,
-                    'ultimo_desconto_aplicado': str(ticket.ultimo_desconto_aplicado),
                 }
 
                 desconto_dict = {
