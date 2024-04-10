@@ -313,6 +313,13 @@ def post_desconto(request, ticket_id):
 
 def get_descontos(request):
     descontos = Desconto.objects.all()
+    
+    if request.method == 'POST':
+        dados = request.POST.dict() # recebe os dados do formulario
+        if "categoria" in dados:
+            descontos = descontos.filter(categoria=dados.get("categoria"))
+    
+    context = {"descontos": descontos}
 
     descontos_list = []
     for desconto in descontos:
