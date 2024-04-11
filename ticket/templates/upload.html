@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Upload de Arquivo Excel</title>
+  </head>
+  <body>
+    <h1>Upload de Arquivo Excel</h1>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="file" name="excel_file" />
+      <button type="submit">Upload</button>
+    </form>
+  </body>
+</html>

@@ -4,6 +4,7 @@ from . import views
 from backend import settings
 from django.conf.urls.static import static
 from . import rotina
+from . import rotina2
 
 # Definindo as rotas da aplicação
 urlpatterns = [
@@ -30,6 +31,7 @@ urlpatterns = [
          views.busca_ticket, name='busca_ticket'),
     path('busca_desconto/', views.busca_desconto, name='busca_desconto'),
     path('rotina/', rotina.rotina, name='rotina'),
+    path('import_descontos/', rotina2.upload_excel, name='import_descontos')
 ]
 
 # Se o modo DEBUG estiver ativado nas configurações
