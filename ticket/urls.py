@@ -30,7 +30,6 @@ urlpatterns = [
     path('busca_ticket/',
          views.busca_ticket, name='busca_ticket'),
     path('busca_desconto/', views.busca_desconto, name='busca_desconto'),
-    path('rotina/', rotina.rotina, name='rotina'),
     path('import_descontos/', rotina2.upload_excel, name='import_descontos')
 ]
 
