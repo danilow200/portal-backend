@@ -4,3 +4,4 @@ __pycache__
 *.csv
 migrations
 db.sqlite3-journal
+ticket/rotina.py
