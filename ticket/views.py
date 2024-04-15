@@ -131,14 +131,18 @@ def get_tickets(request):
     # Logica pra receber as infomações do formulario(filtros) e exibir apenas os filtros selecionados(Ex:prioridades)
     if request.method == 'POST':
         dados = request.POST.dict()  # recebe os dados do formulario
+        if "estacao" in dados:
+            tickets = tickets.filter(estacao=dados.get("estacao"))
         if "prioridade" in dados:
             tickets = tickets.filter(prioridade=dados.get("prioridade"))
         if "mes" in dados:
             tickets = tickets.filter(mes=dados.get("mes"))
         if "categoria" in dados:
             tickets = tickets.filter(categoria=dados.get("categoria"))
+            
+    estacoes = tickets.values_list("estacao", flat=True).distinct()
 
-    context = {"tickets": tickets}
+    context = {"tickets": tickets, "estacoes": estacoes}
 
     # Prepara uma lista para armazenar os dados dos tickets
     tickets_list = []
@@ -194,10 +198,10 @@ def get_tickets(request):
         })
 
     # Return pra renderizar 'get_tickets.html'
-    # return render(request, 'get_tickets.html', context)
+    return render(request, 'get_tickets.html', context)
 
     # Retorna os tickets e as filas associadas como uma resposta HTTP
-    return JsonResponse(tickets_list, safe=False)
+    #return JsonResponse(tickets_list, safe=False)
 
 
 def define_auditor(request, ticket_id):

@@ -1,10 +1,20 @@
 {% extends 'base.html' %}
 {% block body %}
 
+<form method="POST" action="">
+    <p>Selecione o SITE:</p>
+        {% for estacao in estacoes %}
+        <input type="radio" name="estacao" value="{{ estacao }}">
+        <label for="{{ estacao }}"> {{ estacao }} </label>
+        <br>
+        {% endfor %}
+        <button type="submit"> Aplicar </button>
+</form>
+
 <p>TICKETS</p>
 {% for ticket in tickets %}
 <p>Ticket: {{ ticket.ticket }}</p>
-<p>Descrição: {{ ticket.descricao }}</p>
+<p>Descrição: {{ ticket.estacao }}</p>
 <p>Prioridade: {{ ticket.prioridade }}</p>
 <p>---------------------------------------</p>
 {% endfor %}
