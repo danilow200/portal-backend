@@ -3,7 +3,7 @@ from django.urls import path
 from . import views
 from backend import settings
 from django.conf.urls.static import static
-from . import rotina
+# from . import rotina
 from . import rotina2
 
 # Definindo as rotas da aplicação
