@@ -198,10 +198,10 @@ def get_tickets(request):
         })
 
     # Return pra renderizar 'get_tickets.html'
-    return render(request, 'get_tickets.html', context)
+    #return render(request, 'get_tickets.html', context)
 
     # Retorna os tickets e as filas associadas como uma resposta HTTP
-    #return JsonResponse(tickets_list, safe=False)
+    return JsonResponse(tickets_list, safe=False)
 
 
 def define_auditor(request, ticket_id):
