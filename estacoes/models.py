@@ -1,5 +1,34 @@
 from django.db import models
 
+ESTADOS = (
+    ('AC', 'Acre'),
+    ('AL', 'Alagoas'),
+    ('AM', 'Amazonas'),
+    ('AP', 'Amapá'),
+    ('BA', 'Bahia'),
+    ('CE', 'Ceará'),
+    ('DF', 'Distrito Federal'),
+    ('ES', 'Espírito Santo'),
+    ('GO', 'Goiás'),
+    ('MA', 'Maranhão'),
+    ('MG', 'Minas Gerais'),
+    ('MS', 'Mato Grosso do Sul'),
+    ('MT', 'Mato Grosso'),
+    ('PA', 'Pará'),
+    ('PB', 'Paraíba'),
+    ('PE', 'Pernambuco'),
+    ('PI', 'Piauí'),
+    ('PR', 'Paraná'),
+    ('RJ', 'Rio de Janeiro'),
+    ('RN', 'Rio Grande do Norte'),
+    ('RO', 'Rondônia'),
+    ('RR', 'Roraima'),
+    ('RS', 'Rio Grande do Sul'),
+    ('SC', 'Santa Catarina'),
+    ('SE', 'Sergipe'),
+    ('SP', 'São Paulo'),
+    ('TO', 'Tocantins')
+)
 # Create your models here.
 class Estacao (models.Model):
     codigo = models.CharField(max_length=15)
@@ -49,7 +78,7 @@ class Tecnico (models.Model):
 
 class Lider (models.Model):
     nome = models.CharField(max_length=50)
-    estados = models.CharField(max_length=50)
+    estados = models.CharField(max_length=50, choices=ESTADOS, null=True)
     email = models.CharField(max_length=50)
     regiao = models.CharField(max_length=50)
     telefone = models.CharField(max_length=50)
