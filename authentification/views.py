@@ -14,9 +14,9 @@ class HomeView(APIView):
   # Definindo a resposta para requisições GET
   def get(self, request):
     # Criando o conteúdo da resposta
-    content = {'message': 'Login Funcionando'}
+    content = {'message': f'Olá, {request.user.username}! Login Funcionando'}
     # Retornando a resposta
-    return Response(content)
+    return Response(request.user.username)
   
 # Definindo a view LogoutView
 class LogoutView(APIView):
