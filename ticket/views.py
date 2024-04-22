@@ -178,7 +178,8 @@ def get_tickets(request):
                 'total': total_formatado,
                 'categoria': desconto.categoria,
                 'aplicado': desconto.aplicado,
-                'auditor': desconto.auditor.username,
+                'auditor': desconto.auditor.username if desconto.auditor else None,
+                'observacao': desconto.observacao,
             })
         # Adiciona os detalhes do ticket e das filas associadas à lista de tickets
         tickets_list.append({
@@ -305,6 +306,7 @@ def post_desconto(request, ticket_id):
             desc.ticket = ticket
             desc.aplicado = data['aplicado']
             desc.categoria = data['categoria']
+            desc.observacao = data['observacao']
 
             desc.save()
 
@@ -340,9 +342,10 @@ def get_descontos(request):
             'inicio': desconto.inicio.strftime("%d/%m/%Y %H:%M:%S"),
             'fim': desconto.fim.strftime("%d/%m/%Y %H:%M:%S"),
             'total': total_formatado,
-            'auditor': desconto.auditor.username,
+            'auditor': desconto.auditor.username if desconto.auditor else None,
             'categoria': desconto.categoria,
-            'aplicado': desconto.aplicado
+            'aplicado': desconto.aplicado,
+            'observacao': desconto.observacao,
         })
 
     return JsonResponse(descontos_list, safe=False)
@@ -372,6 +375,7 @@ def update_desconto(request, desconto_id):
             desc.fim = fim
             desc.aplicado = data['aplicado']
             desc.categoria = data['categoria']
+            desc.observacao = data['observacao']
 
             # Salva o desconto atualizado
             desc.save()
@@ -433,6 +437,7 @@ def busca_ticket(request):
                         'categoria': desconto.categoria,
                         'aplicado': desconto.aplicado,
                         'auditor': desconto.auditor.username if desconto.auditor else None,
+                        'observacao': desconto.observacao,
                     })
                 ticket_dict = {
                     'ticket': ticket.ticket,
