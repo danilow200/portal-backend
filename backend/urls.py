@@ -19,4 +19,5 @@ urlpatterns = [
     path('', include('authentification.urls')),
     # Incluindo as rotas definidas no aplicativo 'ticket'
     path('',include('ticket.urls')),
+    path('',include('estacoes.urls')),
 ]
