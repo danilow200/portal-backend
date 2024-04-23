@@ -48,9 +48,14 @@ class Estacao (models.Model):
     def __str__(self):
         return self.codigo
 
+class Estado(models.Model):
+    nome = models.CharField(max_length=50, choices=ESTADOS)
+    def __str__(self):
+        return self.nome
+
 class Localidade (models.Model):
     localidade = models.CharField(max_length=100)
-    uf = models.CharField(max_length=50)
+    uf = models.ForeignKey(Estado, on_delete=models.CASCADE)
     cnl = models.CharField(max_length=50)
     ibge = models.CharField(max_length=50)
 
@@ -85,10 +90,6 @@ class Tecnico (models.Model):
     lider = models.ForeignKey('Lider', on_delete=models.CASCADE)
     coordenador = models.CharField(max_length=50)
 
-    def __str__(self):
-        return self.nome
-class Estado(models.Model):
-    nome = models.CharField(max_length=50, choices=ESTADOS)
     def __str__(self):
         return self.nome
     
