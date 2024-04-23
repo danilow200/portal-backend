@@ -118,6 +118,8 @@ def rotina(request):
                 str)
             tabela3 = tabela3.groupby('Código Ocorrência')[
                 'Informações da ocorrência'].agg(' '.join).reset_index()
+            lista_codigos_abertura = []
+            lista_codigos_fechamento = []
 
             # Código que irá criar o dicionário com os descontos
             for i, row in tabela2.iterrows():
@@ -134,28 +136,33 @@ def rotina(request):
                         desconto = {'codigo': codigo, 'inicio': inicio,
                                     'fim': None, 'categoria': categoria}
                         resultados.append(desconto)
+                        lista_codigos_abertura.append(codigo)
                 for codigo_texto in lista_fechamento:
                     if codigo_texto in texto:
                         # Código de fechamento
                         codigo = texto[texto.index(
                             codigo_texto)+6:texto.index(codigo_texto)+10]
-                        # Encontre o último desconto com este código que ainda não tem um tempo de fim
-                        for desconto in reversed(resultados):
-                            if desconto['codigo'] == codigo and desconto['fim'] is None:
-                                # Acessa a tabela3 e busca um dos textos da lista lista_tramitacao
-                                for tramitacao in lista_tramitacao:
-                                    # Verifica se o texto da tramitação está na coluna "Informações da ocorrência"
-                                    if tabela3['Informações da ocorrência'].str.contains(tramitacao, na=False).any():
-                                        # Encontra a linha correspondente
-                                        linha = tabela3[tabela3['Informações da ocorrência'].str.contains(
-                                            tramitacao, na=False)].iloc[0]
-                                        # Extrai a string completa de "Informações da ocorrência"
-                                        info_ocorrencia = linha['Informações da ocorrência']
-                                        # Extrai apenas a data e hora da string
-                                        hora = info_ocorrencia.split(' - ')[0]
-                                        # Atribui a hora ao 'fim' do desconto
-                                        desconto['fim'] = hora
-                                        break
+                        fim = row[0]
+                        lista_codigos_fechamento.append(codigo)
+                        for desconto in resultados:
+                            if desconto['codigo'] == codigo:
+                                desconto['fim'] = fim
+
+            if len(lista_codigos_abertura) > len(lista_codigos_fechamento):
+                # O último desconto na lista de resultados é o que não tem um código de fechamento correspondente
+                resultados[-1]['fim'] = 'não tem fechamento'
+                for tramitacao in lista_tramitacao:
+                    if tabela3['Informações da ocorrência'].str.contains(tramitacao, na=False).any():
+                        # Encontra a linha correspondente
+                        linha = tabela3[tabela3['Informações da ocorrência'].str.contains(
+                            tramitacao, na=False)].iloc[0]
+                        # Extrai a string completa de "Informações da ocorrência"
+                        info_ocorrencia = linha['Informações da ocorrência']
+                        # Extrai apenas a data e hora da string
+                        hora = info_ocorrencia.split(' - ')[0]
+                        # Atribui a hora ao 'fim' do desconto
+                        desconto['fim'] = hora
+                        break
 
             return JsonResponse(resultados, safe=False)
         else:
