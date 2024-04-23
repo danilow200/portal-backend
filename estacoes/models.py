@@ -45,11 +45,22 @@ class Estacao (models.Model):
     lider = models.ForeignKey('Lider', on_delete=models.CASCADE)
     coordenador = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.codigo
+
+class Estado(models.Model):
+    nome = models.CharField(max_length=50, choices=ESTADOS)
+    def __str__(self):
+        return self.nome
+
 class Localidade (models.Model):
-    municipio = models.CharField(max_length=100)
-    uf = models.CharField(max_length=50)
+    localidade = models.CharField(max_length=100)
+    uf = models.ForeignKey(Estado, on_delete=models.CASCADE)
     cnl = models.CharField(max_length=50)
     ibge = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.localidade
 
 class Preventiva (models.Model):
     estacao = models.ForeignKey(Estacao, on_delete=models.CASCADE)
@@ -66,6 +77,9 @@ class Preventiva (models.Model):
     estrutura = models.CharField(max_length=50)
     cameras = models.IntegerField()
 
+    def __str__(self):
+        return self.estacao
+    
 class Tecnico (models.Model):
     nome = models.CharField(max_length=50)
     cpf = models.CharField(max_length=50)
@@ -76,9 +90,24 @@ class Tecnico (models.Model):
     lider = models.ForeignKey('Lider', on_delete=models.CASCADE)
     coordenador = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.nome
+    
 class Lider (models.Model):
     nome = models.CharField(max_length=50)
-    estados = models.CharField(max_length=50, choices=ESTADOS, null=True)
+    estados = models.ManyToManyField(Estado, blank=True)
     email = models.CharField(max_length=50)
-    regiao = models.CharField(max_length=50)
     telefone = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.nome
+    
+class Coordenador (models.Model):
+    nome = models.CharField(max_length=50)
+    estados = models.ManyToManyField(Estado, blank=True)
+    email = models.CharField(max_length=50)
+    telefone = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.nome
+

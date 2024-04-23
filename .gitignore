@@ -2,6 +2,7 @@
 db.sqlite3
 __pycache__
 *.csv
+*.xlsx
 migrations
 db.sqlite3-journal
 rotina.py
