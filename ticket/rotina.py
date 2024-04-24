@@ -124,6 +124,7 @@ def rotina(request):
                 texto = row[4]
                 for codigo_texto in lista_abertura:
                     if codigo_texto in texto:
+                        ticket = tabela1.iloc[0, 1]
                         # Código de abertura
                         codigo = texto[texto.index(
                             codigo_texto)+5:texto.index(codigo_texto)+11]
@@ -131,8 +132,8 @@ def rotina(request):
                             codigo[1:-1], 'Desconhecido')
                         inicio = row[0]
                         # Crie um novo dicionário para este desconto
-                        desconto = {'codigo': codigo, 'inicio': inicio,
-                                    'fim': None, 'categoria': categoria}
+                        desconto = {'ticket': ticket, 'codigo': codigo, 'inicio': inicio,
+                                    'fim': None, 'categoria': categoria, 'observacao': 'Desconto automático', 'aplicado': False}
                         resultados.append(desconto)
                 for codigo_texto in lista_fechamento:
                     if codigo_texto in texto:
