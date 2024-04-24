@@ -24,10 +24,10 @@ import pandas as pd
 
 def rotina(request):
     try:
-        # Obtenha o número do ticket da solicitação
-        ticket_number = request.GET.get('q')
+        if request.method == 'POST':
+            # Obtenha o número do ticket da solicitação
+            ticket_number = request.POST.get('ticket_number')
 
-        if ticket_number:
             url = 'https://report.telebras.com.br/scripts/get_incidentes.php'
 
             lista_abertura = ['[PAD]$IPFA#', '[PAD]$IPAC#', '[PAD]$IPAR#', '[PAD]$IPAA#',
@@ -99,7 +99,8 @@ def rotina(request):
 
             for tabela in lista_tabelas:
                 if tabela is not None and len(tabela.columns) > 4:
-                    tabela_modificada = tabela.drop(tabela.columns[4], axis=1)
+                    tabela_modificada = tabela.drop(
+                        tabela.columns[4], axis=1)
                     tabelas_modificadas.append(tabela_modificada)
                 else:
                     tabelas_modificadas.append(tabela)
@@ -122,19 +123,21 @@ def rotina(request):
             # Código que irá criar o dicionário com os descontos
             for i, row in tabela2.iterrows():
                 texto = row[4]
+                codigo = None
                 for codigo_texto in lista_abertura:
                     if codigo_texto in texto:
                         ticket = tabela1.iloc[0, 1]
                         # Código de abertura
                         codigo = texto[texto.index(
                             codigo_texto)+5:texto.index(codigo_texto)+11]
-                        categoria = categoria_dicionario.get(
-                            codigo[1:-1], 'Desconhecido')
-                        inicio = row[0]
-                        # Crie um novo dicionário para este desconto
-                        desconto = {'ticket': ticket, 'codigo': codigo, 'inicio': inicio,
-                                    'fim': None, 'categoria': categoria, 'observacao': 'Desconto automático', 'aplicado': False}
-                        resultados.append(desconto)
+                        if codigo is not None:
+                            categoria = categoria_dicionario.get(
+                                codigo[1:-1], 'Desconhecido')
+                            inicio = row[0]
+                            # Crie um novo dicionário para este desconto
+                            desconto = {'ticket': ticket, 'codigo': codigo, 'inicio': inicio,
+                                        'fim': None, 'categoria': categoria, 'observacao': 'Desconto automático', 'aplicado': False}
+                            resultados.append(desconto)
                 for codigo_texto in lista_fechamento:
                     if codigo_texto in texto:
                         # Código de fechamento
@@ -147,7 +150,7 @@ def rotina(request):
 
             ultimo_codigo = codigo
 
-            if ultimo_codigo.startswith('$'):
+            if codigo and ultimo_codigo.startswith('$'):
                 # O último desconto na lista de resultados é o que não tem um código de fechamento correspondente
                 resultados[-1]['fim'] = 'não tem fechamento'
                 for tramitacao in lista_tramitacao:
@@ -164,7 +167,6 @@ def rotina(request):
                         break
 
             return JsonResponse(resultados, safe=False)
-        else:
-            return JsonResponse([], safe=False)
+        return render(request, 'rotina.html')
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

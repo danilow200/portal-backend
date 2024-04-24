@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Rotina automática</title>
+  </head>
+  <body>
+    <h1>Rotina automática de descontos</h1>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="input" name="ticket_number" />
+      <button type="submit">Enviar</button>
+    </form>
+  </body>
+</html>
