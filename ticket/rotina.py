@@ -118,8 +118,6 @@ def rotina(request):
                 str)
             tabela3 = tabela3.groupby('Código Ocorrência')[
                 'Informações da ocorrência'].agg(' '.join).reset_index()
-            lista_codigos_abertura = []
-            lista_codigos_fechamento = []
 
             # Código que irá criar o dicionário com os descontos
             for i, row in tabela2.iterrows():
@@ -128,27 +126,27 @@ def rotina(request):
                     if codigo_texto in texto:
                         # Código de abertura
                         codigo = texto[texto.index(
-                            codigo_texto)+6:texto.index(codigo_texto)+10]
+                            codigo_texto)+5:texto.index(codigo_texto)+11]
                         categoria = categoria_dicionario.get(
-                            codigo, 'Desconhecido')
+                            codigo[1:-1], 'Desconhecido')
                         inicio = row[0]
                         # Crie um novo dicionário para este desconto
                         desconto = {'codigo': codigo, 'inicio': inicio,
                                     'fim': None, 'categoria': categoria}
                         resultados.append(desconto)
-                        lista_codigos_abertura.append(codigo)
                 for codigo_texto in lista_fechamento:
                     if codigo_texto in texto:
                         # Código de fechamento
                         codigo = texto[texto.index(
                             codigo_texto)+6:texto.index(codigo_texto)+10]
                         fim = row[0]
-                        lista_codigos_fechamento.append(codigo)
                         for desconto in resultados:
-                            if desconto['codigo'] == codigo:
+                            if codigo in desconto['codigo']:
                                 desconto['fim'] = fim
 
-            if len(lista_codigos_abertura) > len(lista_codigos_fechamento):
+            ultimo_codigo = codigo
+
+            if ultimo_codigo.startswith('$'):
                 # O último desconto na lista de resultados é o que não tem um código de fechamento correspondente
                 resultados[-1]['fim'] = 'não tem fechamento'
                 for tramitacao in lista_tramitacao:
