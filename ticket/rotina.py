@@ -138,7 +138,9 @@ def rotina(request):
                             desconto = {'ticket': ticket, 'codigo': codigo, 'inicio': inicio,
                                         'fim': None, 'categoria': categoria, 'observacao': 'Desconto automático', 'aplicado': False}
                             resultados.append(desconto)
+                            ultimo_codigo = codigo
                 for codigo_texto in lista_fechamento:
+                    codigo = None
                     if codigo_texto in texto:
                         # Código de fechamento
                         codigo = texto[texto.index(
@@ -147,24 +149,28 @@ def rotina(request):
                         for desconto in resultados:
                             if codigo in desconto['codigo']:
                                 desconto['fim'] = fim
+                        if codigo is not None:
+                            ultimo_codigo = codigo
 
-            ultimo_codigo = codigo
-
-            if codigo and ultimo_codigo.startswith('$'):
-                # O último desconto na lista de resultados é o que não tem um código de fechamento correspondente
-                resultados[-1]['fim'] = 'não tem fechamento'
-                for tramitacao in lista_tramitacao:
-                    if tabela3['Informações da ocorrência'].str.contains(tramitacao, na=False).any():
-                        # Encontra a linha correspondente
-                        linha = tabela3[tabela3['Informações da ocorrência'].str.contains(
-                            tramitacao, na=False)].iloc[0]
-                        # Extrai a string completa de "Informações da ocorrência"
-                        info_ocorrencia = linha['Informações da ocorrência']
-                        # Extrai apenas a data e hora da string
-                        hora = info_ocorrencia.split(' - ')[0]
-                        # Atribui a hora ao 'fim' do desconto
-                        desconto['fim'] = hora
-                        break
+            try:
+                print(ultimo_codigo)
+                if ultimo_codigo.startswith('$'):
+                    # O último desconto na lista de resultados é o que não tem um código de fechamento correspondente
+                    resultados[-1]['fim'] = 'não tem fechamento'
+                    for tramitacao in lista_tramitacao:
+                        if tabela3['Informações da ocorrência'].str.contains(tramitacao, na=False).any():
+                            # Encontra a linha correspondente
+                            linha = tabela3[tabela3['Informações da ocorrência'].str.contains(
+                                tramitacao, na=False)].iloc[0]
+                            # Extrai a string completa de "Informações da ocorrência"
+                            info_ocorrencia = linha['Informações da ocorrência']
+                            # Extrai apenas a data e hora da string
+                            hora = info_ocorrencia.split(' - ')[0]
+                            # Atribui a hora ao 'fim' do desconto
+                            desconto['fim'] = hora
+                            break
+            except:
+                pass
 
             return JsonResponse(resultados, safe=False)
         return render(request, 'rotina.html')
