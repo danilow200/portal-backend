@@ -20,6 +20,7 @@ import requests
 import pandas as pd
 from datetime import datetime
 import pytz
+from django.db import IntegrityError
 
 # Código que irá rodar a rotina automaticamente
 
@@ -182,7 +183,6 @@ def aplica_desconto(ticket):
 def rotina(request):
 
     try:
-        cont = 0
         tz = pytz.timezone('America/Sao_Paulo')
         if request.method == 'POST':
             # Obtenha o intervalo de fechamento dosticket da solicitação
@@ -203,19 +203,23 @@ def rotina(request):
             print(tickets_in_range)
 
             lista_aux = []
+            lista_original = []
 
             for ticket in tickets_in_range:
-                lista_aux.append(aplica_desconto(ticket))
+                lista_original.append(aplica_desconto(ticket))
+
+            for lista_externa in lista_original:
+                for lista_interna in lista_externa:
+                    lista_aux.extend(lista_interna)
 
             print(lista_aux)
 
-            for resultado in lista_aux:
-                for desconto in resultado:
-                    desconto_novo = [
-                        individual for individual in desconto if individual['fim'] is not None]
-                    for desconto in desconto_novo:
-                        # Encontre o ticket correspondente
-                        ticket = Ticket.objects.get(ticket=desconto['ticket'])
+            for desconto in lista_aux:
+                if desconto['fim'] is not None:
+                    # Encontre os tickets correspondentes
+                    tickets = Ticket.objects.filter(ticket=desconto['ticket'])
+                    # Encontre o ticket correspondente
+                    for ticket in tickets:
                         # Adicione ':00' ao final de cada string de data e hora para adicionar segundos
                         inicio_str = desconto['inicio'] + ':00'
                         fim_str = desconto['fim'] + ':00'
@@ -228,16 +232,20 @@ def rotina(request):
                         inicio = timezone.make_aware(inicio_naive)
                         fim = timezone.make_aware(
                             fim_naive) if fim_naive else None
-                        print(desconto)
+                        # print(desconto)
                         # Crie o objeto Desconto
-                        Desconto.objects.create(
-                            inicio=inicio,
-                            fim=fim,
-                            ticket=ticket,
-                            observacao=desconto['observacao'],
-                            aplicado=desconto['aplicado'],
-                            categoria=desconto['categoria'],
-                        )
+                        try:
+                            desconto_obj = Desconto.objects.create(
+                                inicio=inicio,
+                                fim=fim,
+                                ticket=ticket,
+                                observacao=desconto['observacao'],
+                                aplicado=desconto['aplicado'],
+                                categoria=desconto['categoria'],
+                            )
+                            desconto_obj.save()
+                        except IntegrityError:
+                            print('Desconto criado com Sucesso')
 
         return render(request, 'rotina.html')
     except Exception as e:
