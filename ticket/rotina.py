@@ -217,35 +217,32 @@ def rotina(request):
             for desconto in lista_aux:
                 if desconto['fim'] is not None:
                     # Encontre os tickets correspondentes
-                    tickets = Ticket.objects.filter(ticket=desconto['ticket'])
-                    # Encontre o ticket correspondente
-                    for ticket in tickets:
-                        # Adicione ':00' ao final de cada string de data e hora para adicionar segundos
-                        inicio_str = desconto['inicio'] + ':00'
-                        fim_str = desconto['fim'] + ':00'
-                        # Converta as strings de data e hora para objetos datetime
-                        inicio_naive = datetime.strptime(
-                            inicio_str, '%d/%m/%Y %H:%M:%S')
-                        fim_naive = datetime.strptime(
-                            fim_str, '%d/%m/%Y %H:%M:%S') if fim_str else None
-                        # Adicione informações de fuso horário aos objetos datetime
-                        inicio = timezone.make_aware(inicio_naive)
-                        fim = timezone.make_aware(
-                            fim_naive) if fim_naive else None
-                        # print(desconto)
-                        # Crie o objeto Desconto
-                        try:
-                            desconto_obj = Desconto.objects.create(
-                                inicio=inicio,
-                                fim=fim,
-                                ticket=ticket,
-                                observacao=desconto['observacao'],
-                                aplicado=desconto['aplicado'],
-                                categoria=desconto['categoria'],
-                            )
-                            desconto_obj.save()
-                        except IntegrityError:
-                            print('Desconto criado com Sucesso')
+                    ticket = Ticket.objects.get(ticket=desconto['ticket'])
+                    # Adicione ':00' ao final de cada string de data e hora para adicionar segundos
+                    inicio_str = desconto['inicio'] + ':00'
+                    fim_str = desconto['fim'] + ':00'
+                    # Converta as strings de data e hora para objetos datetime
+                    inicio_naive = datetime.strptime(
+                        inicio_str, '%d/%m/%Y %H:%M:%S')
+                    fim_naive = datetime.strptime(
+                        fim_str, '%d/%m/%Y %H:%M:%S') if fim_str else None
+                    # Adicione informações de fuso horário aos objetos datetime
+                    inicio = timezone.make_aware(inicio_naive)
+                    fim = timezone.make_aware(
+                        fim_naive) if fim_naive else None
+                    # Crie o objeto Desconto
+                    try:
+                        desconto_obj = Desconto.objects.create(
+                            inicio=inicio,
+                            fim=fim,
+                            ticket=ticket,
+                            observacao=desconto['observacao'],
+                            aplicado=desconto['aplicado'],
+                            categoria=desconto['categoria'],
+                        )
+                        desconto_obj.save()
+                    except IntegrityError:
+                        print('Desconto criado com Sucesso')
 
         return render(request, 'rotina.html')
     except Exception as e:
