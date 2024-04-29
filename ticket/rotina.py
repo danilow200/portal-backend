@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 import requests
 import pandas as pd
 from datetime import datetime
+import pytz
 
 # Código que irá rodar a rotina automaticamente
 
@@ -181,7 +182,8 @@ def aplica_desconto(ticket):
 def rotina(request):
 
     try:
-
+        cont = 0
+        tz = pytz.timezone('America/Sao_Paulo')
         if request.method == 'POST':
             # Obtenha o intervalo de fechamento dosticket da solicitação
             first_date_str = request.POST.get('first_date')
@@ -205,12 +207,37 @@ def rotina(request):
             for ticket in tickets_in_range:
                 lista_aux.append(aplica_desconto(ticket))
 
+            print(lista_aux)
+
             for resultado in lista_aux:
                 for desconto in resultado:
                     desconto_novo = [
                         individual for individual in desconto if individual['fim'] is not None]
                     for desconto in desconto_novo:
+                        # Encontre o ticket correspondente
+                        ticket = Ticket.objects.get(ticket=desconto['ticket'])
+                        # Adicione ':00' ao final de cada string de data e hora para adicionar segundos
+                        inicio_str = desconto['inicio'] + ':00'
+                        fim_str = desconto['fim'] + ':00'
+                        # Converta as strings de data e hora para objetos datetime
+                        inicio_naive = datetime.strptime(
+                            inicio_str, '%d/%m/%Y %H:%M:%S')
+                        fim_naive = datetime.strptime(
+                            fim_str, '%d/%m/%Y %H:%M:%S') if fim_str else None
+                        # Adicione informações de fuso horário aos objetos datetime
+                        inicio = timezone.make_aware(inicio_naive)
+                        fim = timezone.make_aware(
+                            fim_naive) if fim_naive else None
                         print(desconto)
+                        # Crie o objeto Desconto
+                        Desconto.objects.create(
+                            inicio=inicio,
+                            fim=fim,
+                            ticket=ticket,
+                            observacao=desconto['observacao'],
+                            aplicado=desconto['aplicado'],
+                            categoria=desconto['categoria'],
+                        )
 
         return render(request, 'rotina.html')
     except Exception as e:
