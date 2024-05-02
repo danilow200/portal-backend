@@ -134,6 +134,7 @@ def aplica_desconto(ticket):
                     categoria = categoria_dicionario.get(
                         codigo[1:-1], 'Desconhecido')
                     inicio = row[0]
+                    inicio = datetime.strptime(inicio, '%d/%m/%Y %H:%M')
                     # Crie um novo dicionário para este desconto
                     desconto = {'ticket': ticket, 'codigo': codigo, 'inicio': inicio,
                                 'fim': None, 'categoria': categoria, 'observacao': 'Desconto automático', 'aplicado': False}
@@ -146,6 +147,7 @@ def aplica_desconto(ticket):
                 codigo = texto[texto.index(
                     codigo_texto)+6:texto.index(codigo_texto)+10]
                 fim = row[0]
+                fim = datetime.strptime(fim, '%d/%m/%Y %H:%M')
                 # Inverta a ordem dos resultados
                 for desconto in reversed(resultados):
                     # Verifique se o desconto ainda não tem um tempo de fechamento
@@ -157,20 +159,24 @@ def aplica_desconto(ticket):
 
     try:
         if ultimo_codigo.startswith('$'):
+            tabela3 = tabela3.iloc[::-1]
             # O último desconto na lista de resultados é o que não tem um código de fechamento correspondente
             resultados[-1]['fim'] = 'não tem fechamento'
-            for tramitacao in lista_tramitacao:
-                if tabela3['Informações da ocorrência'].str.contains(tramitacao, na=False).any():
-                    # Encontra a linha correspondente
-                    linha = tabela3[tabela3['Informações da ocorrência'].str.contains(
-                        tramitacao, na=False)].iloc[0]
-                    # Extrai a string completa de "Informações da ocorrência"
-                    info_ocorrencia = linha['Informações da ocorrência']
-                    # Extrai apenas a data e hora da string
-                    hora = info_ocorrencia.split(' - ')[0]
-                    # Atribui a hora ao 'fim' do desconto
-                    desconto['fim'] = hora
-                    break
+            inicio = resultados[-1]['inicio']
+            print(inicio)
+            for index, row in tabela3.iterrows():
+                for tramitacao in lista_tramitacao:
+                    if tramitacao in row['Informações da ocorrência']:
+                        # Extrai a string completa de "Informações da ocorrência"
+                        info_ocorrencia = row['Informações da ocorrência']
+                        # Extrai apenas a data e hora da string
+                        hora_str = info_ocorrencia.split(' - ')[0]
+                        hora = datetime.strptime(
+                            hora_str, '%d/%m/%Y %H:%M')
+                        # Atribui a hora ao 'fim' do desconto
+                        desconto['fim'] = hora
+                        break
+
     except:
         pass
 
@@ -219,17 +225,12 @@ def rotina(request):
                     # Encontre os tickets correspondentes
                     ticket = Ticket.objects.get(ticket=desconto['ticket'])
                     # Adicione ':00' ao final de cada string de data e hora para adicionar segundos
-                    inicio_str = desconto['inicio'] + ':00'
-                    fim_str = desconto['fim'] + ':00'
-                    # Converta as strings de data e hora para objetos datetime
-                    inicio_naive = datetime.strptime(
-                        inicio_str, '%d/%m/%Y %H:%M:%S')
-                    fim_naive = datetime.strptime(
-                        fim_str, '%d/%m/%Y %H:%M:%S') if fim_str else None
+                    inicio = desconto['inicio']
+                    fim = desconto['fim']
                     # Adicione informações de fuso horário aos objetos datetime
-                    inicio = timezone.make_aware(inicio_naive)
+                    inicio = timezone.make_aware(inicio)
                     fim = timezone.make_aware(
-                        fim_naive) if fim_naive else None
+                        fim) if fim else None
                     # Crie o objeto Desconto
                     try:
                         desconto_obj = Desconto.objects.create(
