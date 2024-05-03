@@ -163,7 +163,6 @@ def aplica_desconto(ticket):
             # O último desconto na lista de resultados é o que não tem um código de fechamento correspondente
             resultados[-1]['fim'] = 'não tem fechamento'
             inicio = resultados[-1]['inicio']
-            print(inicio)
             for index, row in tabela3.iterrows():
                 for tramitacao in lista_tramitacao:
                     if tramitacao in row['Informações da ocorrência']:
@@ -174,8 +173,10 @@ def aplica_desconto(ticket):
                         hora = datetime.strptime(
                             hora_str, '%d/%m/%Y %H:%M')
                         # Atribui a hora ao 'fim' do desconto
-                        desconto['fim'] = hora
-                        break
+                        if inicio < hora:
+                            desconto['fim'] = hora
+                            # print(type(inicio))
+                            # print(type(hora))
 
     except:
         pass
@@ -206,7 +207,7 @@ def rotina(request):
             tickets_in_range = [ticket.ticket for ticket in tickets if first_date <= datetime.strptime(
                 ticket.fim, '%d/%m/%Y %H:%M:%S') <= final_date]
 
-            print(tickets_in_range)
+            # print(tickets_in_range)
 
             lista_aux = []
             lista_original = []
@@ -218,10 +219,10 @@ def rotina(request):
                 for lista_interna in lista_externa:
                     lista_aux.extend(lista_interna)
 
-            print(lista_aux)
+            print((lista_aux))
 
             for desconto in lista_aux:
-                if desconto['fim'] is not None:
+                if desconto['fim'] is not None and desconto['fim'] != 'não tem fechamento':
                     # Encontre os tickets correspondentes
                     ticket = Ticket.objects.get(ticket=desconto['ticket'])
                     # Adicione ':00' ao final de cada string de data e hora para adicionar segundos
