@@ -40,6 +40,8 @@ def aplica_desconto(ticket):
                         '[RAD]#IPFA$', '[RAD]#IPAC$', '[RAD]#IPAR$', '[RAD]#IPAA$',
                         '[RAD]#IPFR$', '[RAD]#IPFE$', '[RAD]#IPOS$', '[RAD]#IPTS$',]
 
+    lista_automaticos = ['$IPFE#', '$IPFR#', '$IPAC#', '$IPTS#']
+
     categoria_dicionario = {
         'IPFA': 'Acesso',
         'IPAC': 'Aguardando CIGR',
@@ -121,6 +123,8 @@ def aplica_desconto(ticket):
         'Informações da ocorrência'].agg(' '.join).reset_index()
 
     # Código que irá criar o dicionário com os descontos
+    ultimo_codigo = None
+
     for i, row in tabela2.iterrows():
         texto = row[4]
         codigo = None
@@ -139,6 +143,7 @@ def aplica_desconto(ticket):
                     desconto = {'ticket': ticket, 'codigo': codigo, 'inicio': inicio,
                                 'fim': None, 'categoria': categoria, 'observacao': 'Desconto automático', 'aplicado': False}
                     resultados.append(desconto)
+
                     ultimo_codigo = codigo
         for codigo_texto in lista_fechamento:
             codigo = None
@@ -148,38 +153,30 @@ def aplica_desconto(ticket):
                     codigo_texto)+6:texto.index(codigo_texto)+10]
                 fim = row[0]
                 fim = datetime.strptime(fim, '%d/%m/%Y %H:%M')
-                # Inverta a ordem dos resultados
                 for desconto in reversed(resultados):
-                    # Verifique se o desconto ainda não tem um tempo de fechamento
                     if codigo in desconto['codigo'] and desconto['fim'] is None:
-                        desconto['fim'] = fim  # Atribua o tempo de fechamento
+                        desconto['fim'] = fim
                 if codigo is not None:
                     ultimo_codigo = codigo
                 break
 
-    try:
-        if ultimo_codigo.startswith('$'):
-            tabela3 = tabela3.iloc[::-1]
-            # O último desconto na lista de resultados é o que não tem um código de fechamento correspondente
-            resultados[-1]['fim'] = 'não tem fechamento'
-            inicio = resultados[-1]['inicio']
-            for index, row in tabela3.iterrows():
-                for tramitacao in lista_tramitacao:
-                    if tramitacao in row['Informações da ocorrência']:
-                        # Extrai a string completa de "Informações da ocorrência"
-                        info_ocorrencia = row['Informações da ocorrência']
-                        # Extrai apenas a data e hora da string
-                        hora_str = info_ocorrencia.split(' - ')[0]
-                        hora = datetime.strptime(
-                            hora_str, '%d/%m/%Y %H:%M')
-                        # Atribui a hora ao 'fim' do desconto
-                        if inicio < hora:
-                            desconto['fim'] = hora
-                            # print(type(inicio))
-                            # print(type(hora))
-
-    except:
-        pass
+    if ultimo_codigo in lista_automaticos:
+        tabela3 = tabela3.iloc[::-1]
+        # O último desconto na lista de resultados é o que não tem um código de fechamento correspondente
+        resultados[-1]['fim'] = 'não tem fechamento'
+        inicio = resultados[-1]['inicio']
+        for index, row in tabela3.iterrows():
+            for tramitacao in lista_tramitacao:
+                if tramitacao in row['Informações da ocorrência']:
+                    # Extrai a string completa de "Informações da ocorrência"
+                    info_ocorrencia = row['Informações da ocorrência']
+                    # Extrai apenas a data e hora da string
+                    hora_str = info_ocorrencia.split(' - ')[0]
+                    hora = datetime.strptime(
+                        hora_str, '%d/%m/%Y %H:%M')
+                    # Atribui a hora ao 'fim' do desconto
+                    if inicio < hora:
+                        desconto['fim'] = hora
 
     final.append(resultados)
 
@@ -206,8 +203,6 @@ def rotina(request):
             # Filtra os tickets com base no intervalo de datas
             tickets_in_range = [ticket.ticket for ticket in tickets if first_date <= datetime.strptime(
                 ticket.fim, '%d/%m/%Y %H:%M:%S') <= final_date]
-
-            # print(tickets_in_range)
 
             lista_aux = []
             lista_original = []
