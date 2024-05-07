@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('import_excel_to_estacao/', views.import_excel_to_estacao, name='import_excel_to_estacao'),
+    path('upload_localidades/', views.import_localidades, name='upload'),
     # Add more paths here
 ]
 

@@ -1,10 +1,12 @@
 from django.shortcuts import render
 import pandas as pd
 from django.db import transaction
-from .models import Estacao, Localidade, Lider
+from .models import Estacao, Localidade, Lider, Estado
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
+
 
 @csrf_exempt
 def import_excel_to_estacao(request):
@@ -49,3 +51,30 @@ def create_estacoes(df):
                 lider=lider,
             )
             estacao.save()
+
+
+@csrf_exempt
+def import_localidades(request):
+    try:
+        if request.method == 'POST' and 'myfile' in request.FILES:
+            myfile = request.FILES['myfile']
+            fs = FileSystemStorage()
+            filename = fs.save(myfile.name, myfile)
+            uploaded_file_url = fs.url(filename)
+
+            localidades_data = pd.read_csv(filename, encoding='UTF-8', index_col=False, dtype={'IBGE': str})
+            localidades_data = localidades_data.dropna()
+            print(localidades_data)
+
+            for index, row in localidades_data.iterrows():
+                estado, created = Estado.objects.get_or_create(nome=row['UF'])
+                localidade = Localidade(localidade=row['Município'], uf=estado, cnl=row['CNL'], ibge=row['IBGE'])
+                localidade.save()
+
+            return JsonResponse({
+                'uploaded_file_url': uploaded_file_url,
+                'message': 'Todas as operações de banco de dados foram concluídas.'
+            })
+    except Exception as e:
+        return JsonResponse({'burro': str(e)}, status=500)
+    return render(request, 'upload_localidades.html', {})

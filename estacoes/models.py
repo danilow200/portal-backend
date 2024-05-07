@@ -29,25 +29,20 @@ ESTADOS = (
     ('SP', 'São Paulo'),
     ('TO', 'Tocantins')
 )
+
+STATUS_SITE = (
+    ('Aguardando acordo', 'Aguardando acordo'),
+    ('Cancelado', 'Cancelado'),
+    ('Desativado', 'Desativado'),
+    ('Em Aceitação', 'Em Aceitação'),
+    ('Homologação', 'Homologação'),
+    ('Implementação', 'Implementação'),
+    ('Operação', 'Operação'),
+    ('Planejamento', 'Planejamento'),
+    ('Projeto', 'Projeto')
+)
+
 # Create your models here.
-class Estacao (models.Model):
-    codigo = models.CharField(max_length=15)
-    localidade = models.ForeignKey('Localidade', on_delete=models.CASCADE)
-    descricao = models.CharField(max_length=100)
-    tipo = models.CharField(max_length=50)
-    status = models.CharField(max_length=50)
-    geolocalizacao = models.CharField(max_length=50)
-    latitude = models.CharField(max_length=50)
-    longitude = models.CharField(max_length=50)
-    cedente = models.CharField(max_length=50)
-    cm = models.CharField(max_length=50)
-    os_padtec = models.CharField(max_length=50)
-    lider = models.ForeignKey('Lider', on_delete=models.CASCADE)
-    coordenador = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.codigo
-
 class Estado(models.Model):
     nome = models.CharField(max_length=50, choices=ESTADOS)
     def __str__(self):
@@ -60,8 +55,24 @@ class Localidade (models.Model):
     ibge = models.CharField(max_length=50)
 
     def __str__(self):
-        return self.localidade
+        return f"{self.localidade} - {self.uf.nome}"
+class Estacao (models.Model):
+    codigo = models.CharField(max_length=15)
+    localidade = models.ForeignKey('Localidade', on_delete=models.CASCADE)
+    descricao = models.CharField(max_length=100)
+    tipo = models.CharField(max_length=50)
+    status = models.CharField(max_length=50, choices=STATUS_SITE)
+    geolocalizacao = models.CharField(max_length=50)
+    latitude = models.CharField(max_length=50)
+    longitude = models.CharField(max_length=50)
+    cedente = models.CharField(max_length=50)
+    cm = models.CharField(max_length=50)
+    os_padtec = models.CharField(max_length=50)
+    lider = models.ForeignKey('Lider', on_delete=models.CASCADE)
+    coordenador = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.codigo
 class Preventiva (models.Model):
     estacao = models.ForeignKey(Estacao, on_delete=models.CASCADE)
     localidade = models.ForeignKey(Localidade, on_delete=models.CASCADE)
