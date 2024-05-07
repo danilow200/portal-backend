@@ -4,7 +4,8 @@ from backend import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('import_excel_to_estacao/', views.import_excel_to_estacao, name='import_excel_to_estacao'),
+    path('import_estacao/', views.import_estacoes, name='import_estacoes'),
+    path('upload_localidades/', views.import_localidades, name='upload'),
     # Add more paths here
 ]
 
