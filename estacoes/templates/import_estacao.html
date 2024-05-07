@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Upload de Arquivo de estacoes</title>
-  </head>
-  <body>
-    <h1>Upload de Arquivo de estações</h1>
+<head>
+    <title>Upload de Estacao</title>
+</head>
+<body>
+    <h1>Upload de Estacao</h1>
     <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      <input type="file" name="myfile" />
-      <button type="submit">Upload</button>
+        {% csrf_token %}
+        <label for="myfile">Selecione um arquivo:</label>
+        <input type="file" id="myfile" name="myfile">
+        <br>
+        <input type="submit" value="Upload">
     </form>
-  </body>
+</body>
 </html>

@@ -8,25 +8,25 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
 
-@csrf_exempt
-def import_excel_to_estacao(request):
-    try:
-        if request.method == 'POST' and 'myfile' in request.FILES:
-            myfile = request.FILES['myfile']
-            fs = FileSystemStorage()
-            filename = fs.save(myfile.name, myfile)
-            uploaded_file_url = fs.url(filename)
+# @csrf_exempt
+# def import_excel_to_estacao(request):
+#     try:
+#         if request.method == 'POST' and 'myfile' in request.FILES:
+#             myfile = request.FILES['myfile']
+#             fs = FileSystemStorage()
+#             filename = fs.save(myfile.name, myfile)
+#             uploaded_file_url = fs.url(filename)
 
-            # Load the Excel spreadsheet into a pandas DataFrame
-            df = pd.read_excel(filename, skiprows=2, index_col=False)
-            print(df)
+#             # Load the Excel spreadsheet into a pandas DataFrame
+#             df = pd.read_excel(filename, skiprows=2, index_col=False)
+#             print(df)
 
-            # Create stations
-            create_estacoes(df)
-            return JsonResponse(df.to_dict(safe=False))
-        return render(request, 'import_estacao.html')
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+#             # Create stations
+#             create_estacoes(df)
+#             return JsonResponse(df.to_dict(safe=False))
+#         return render(request, 'import_estacao.html')
+#     except Exception as e:
+#         return JsonResponse({'error': str(e)}, status=500)
 
 def create_estacoes(df):
     with transaction.atomic():
@@ -64,7 +64,6 @@ def import_localidades(request):
 
             localidades_data = pd.read_csv(filename, encoding='UTF-8', index_col=False, dtype={'IBGE': str})
             localidades_data = localidades_data.dropna()
-            print(localidades_data)
 
             for index, row in localidades_data.iterrows():
                 estado, created = Estado.objects.get_or_create(nome=row['UF'])
@@ -78,3 +77,30 @@ def import_localidades(request):
     except Exception as e:
         return JsonResponse({'burro': str(e)}, status=500)
     return render(request, 'upload_localidades.html', {})
+
+@csrf_exempt
+def import_estacoes(request):
+    if request.method == 'POST' and 'myfile' in request.FILES:
+        myfile = request.FILES['myfile']
+        fs = FileSystemStorage()
+        filename = fs.save(myfile.name, myfile)
+        uploaded_file_url = fs.url(filename)
+
+        estacoes_data = pd.read_excel(filename, skiprows=2)
+        # estacoes_data = estacoes_data.dropna()
+
+        for index, row in estacoes_data.iterrows():
+            municipio, uf = row['Localidade'].split(' - ')
+            localidade = Localidade.objects.filter(localidade=municipio, uf__nome=uf).first()
+
+            if localidade is not None:
+                estacao = Estacao(codigo=row['Estação'], localidade=localidade, descricao=row['Descrição'], 
+                                  tipo=row['Tipo'], status=row['Status'], cedente=row['Cedente'], 
+                                  os_padtec=row['OS Padtec'], latitude=row['Latitude'], longitude=row['Longitude'], cm=row['CM'])
+                estacao.save()
+
+        return JsonResponse({
+            'uploaded_file_url': uploaded_file_url,
+            'message': 'Todas as operações de banco de dados foram concluídas.'
+        })
+    return render(request, 'import_estacao.html', {})  # Nome do template atualizado para 'import_estacao.html'

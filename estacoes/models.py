@@ -62,14 +62,14 @@ class Estacao (models.Model):
     descricao = models.CharField(max_length=100)
     tipo = models.CharField(max_length=50)
     status = models.CharField(max_length=50, choices=STATUS_SITE)
-    geolocalizacao = models.CharField(max_length=50)
+    geolocalizacao = models.CharField(max_length=50, null=True)
     latitude = models.CharField(max_length=50)
     longitude = models.CharField(max_length=50)
     cedente = models.CharField(max_length=50)
     cm = models.CharField(max_length=50)
     os_padtec = models.CharField(max_length=50)
-    lider = models.ForeignKey('Lider', on_delete=models.CASCADE)
-    coordenador = models.CharField(max_length=50)
+    lider = models.ForeignKey('Lider', on_delete=models.CASCADE, null=True)
+    coordenador = models.CharField(max_length=50, null=True)
 
     def __str__(self):
         return self.codigo
@@ -79,7 +79,7 @@ class Preventiva (models.Model):
     tipo = models.CharField(max_length=50)
     cedente = models.CharField(max_length=50)
     cm = models.CharField(max_length=50)
-    geolocalizacao = models.CharField(max_length=50)
+    geolocalizacao = models.CharField(max_length=50, null=True)
     latitude = models.CharField(max_length=50)
     longitude = models.CharField(max_length=50)
     periodicidade = models.CharField(max_length=50)
