@@ -149,12 +149,13 @@ def aplica_desconto(ticket):
             codigo = None
             if codigo_texto in texto:
                 # Código de fechamento
-                codigo = texto[texto.index(
-                    codigo_texto)+6:texto.index(codigo_texto)+10]
+                codigo_inteiro = texto[texto.index(
+                    codigo_texto)+5:texto.index(codigo_texto)+11]
+                codigo = codigo_inteiro[1:-1]
                 fim = row[0]
                 fim = datetime.strptime(fim, '%d/%m/%Y %H:%M')
                 for desconto in reversed(resultados):
-                    if codigo in desconto['codigo'] and desconto['fim'] is None:
+                    if codigo in desconto['codigo'] and desconto['fim'] is None and codigo_inteiro.startswith('#'):
                         desconto['fim'] = fim
                 if codigo is not None:
                     ultimo_codigo = codigo
@@ -215,6 +216,9 @@ def rotina(request):
                     lista_aux.extend(lista_interna)
 
             print((lista_aux))
+
+            df_descontos = pd.DataFrame(lista_aux)
+            df_descontos.to_excel('comparardescontos.xlsx', index=False)
 
             for desconto in lista_aux:
                 if desconto['fim'] is not None and desconto['fim'] != 'não tem fechamento':
