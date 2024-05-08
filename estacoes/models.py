@@ -70,9 +70,19 @@ class Estacao (models.Model):
     os_padtec = models.CharField(max_length=50)
     lider = models.ForeignKey('Lider', on_delete=models.CASCADE, null=True)
     coordenador = models.CharField(max_length=50, null=True)
+    
+    def save(self, *args, **kwargs):
+        # estado da localidade desta estação
+        estado = self.localidade.uf
+
+        # pega lider com base no estado
+        self.lider = Lider.objects.filter(estados__in=[estado]).first()
+        self.coordenador = Coordenador.objects.filter(estados__in=[estado]).first()
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.codigo
+        return f"{self.codigo} - {self.localidade.localidade}"
 class Preventiva (models.Model):
     estacao = models.ForeignKey(Estacao, on_delete=models.CASCADE)
     localidade = models.ForeignKey(Localidade, on_delete=models.CASCADE)
