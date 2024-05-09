@@ -1,4 +1,5 @@
 from django.db import models
+import pandas as pd
 
 ESTADOS = (
     ('AC', 'Acre'),
@@ -62,24 +63,39 @@ class Estacao (models.Model):
     descricao = models.CharField(max_length=100)
     tipo = models.CharField(max_length=50)
     status = models.CharField(max_length=50, choices=STATUS_SITE)
-    geolocalizacao = models.CharField(max_length=50, null=True)
     latitude = models.CharField(max_length=50)
     longitude = models.CharField(max_length=50)
-    cedente = models.CharField(max_length=50)
-    cm = models.CharField(max_length=50)
-    os_padtec = models.CharField(max_length=50)
+    cedente = models.CharField(max_length=50, null=True)
+    cm = models.CharField(max_length=50, null = True)
+    os_padtec = models.CharField(max_length=50, null = True)
     lider = models.ForeignKey('Lider', on_delete=models.CASCADE, null=True)
-    coordenador = models.CharField(max_length=50, null=True)
+    coordenador = models.ForeignKey('Coordenador',on_delete=models.CASCADE, null=True)
+    
+    def save(self, *args, **kwargs):
+        # estado da localidade desta estação
+        estado = self.localidade.uf
+
+        # pega lider com base no estado
+        self.lider = Lider.objects.filter(estados__in=[estado]).first()
+        self.coordenador = Coordenador.objects.filter(estados__in=[estado]).first()
+
+        if str(self.cedente).strip() == 'nan':
+            self.cedente = None
+        if str(self.os_padtec).strip() == 'nan':
+            self.os_padtec = None
+        if str(self.cm).strip() == 'nan':
+            self.cm = None
+            
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.codigo
+        return f"{self.codigo} - {self.localidade.localidade}"
 class Preventiva (models.Model):
     estacao = models.ForeignKey(Estacao, on_delete=models.CASCADE)
     localidade = models.ForeignKey(Localidade, on_delete=models.CASCADE)
     tipo = models.CharField(max_length=50)
     cedente = models.CharField(max_length=50)
     cm = models.CharField(max_length=50)
-    geolocalizacao = models.CharField(max_length=50, null=True)
     latitude = models.CharField(max_length=50)
     longitude = models.CharField(max_length=50)
     periodicidade = models.CharField(max_length=50)
@@ -99,7 +115,7 @@ class Tecnico (models.Model):
     email = models.CharField(max_length=50)
     telefone = models.CharField(max_length=50)
     lider = models.ForeignKey('Lider', on_delete=models.CASCADE)
-    coordenador = models.CharField(max_length=50)
+    coordenador = models.ForeignKey('Coordenador',on_delete=models.CASCADE)
 
     def __str__(self):
         return self.nome

@@ -28,29 +28,29 @@ from django.shortcuts import render
 #     except Exception as e:
 #         return JsonResponse({'error': str(e)}, status=500)
 
-def create_estacoes(df):
-    with transaction.atomic():
-        for _, row in df.iterrows():
-            # Find the corresponding locality or create a new one
-            localidade, _ = Localidade.objects.get_or_create(localidade=row['Localidade'])
+# def create_estacoes(df):
+#     with transaction.atomic():
+#         for _, row in df.iterrows():
+#             # Find the corresponding locality or create a new one
+#             localidade, _ = Localidade.objects.get_or_create(localidade=row['Localidade'])
 
-            lider, _ = Lider.objects.get_or_create(nome=row['Lider'])
+#             lider, _ = Lider.objects.get_or_create(nome=row['Lider'])
 
-            # Create a new instance of the Estacao model
-            estacao = Estacao(
-                codigo=row['Estação'],
-                localidade=localidade,
-                descricao=row['Descrição'],
-                tipo=row['Tipo'],
-                status=row['Status'],
-                latitude=row['Latitude'],
-                longitude=row['Longitude'],
-                cedente=row['Cedente'],
-                cm=row['CM'],
-                os_padtec=row['OS Padtec'],
-                lider=lider,
-            )
-            estacao.save()
+#             # Create a new instance of the Estacao model
+#             estacao = Estacao(
+#                 codigo=row['Estação'],
+#                 localidade=localidade,
+#                 descricao=row['Descrição'],
+#                 tipo=row['Tipo'],
+#                 status=row['Status'],
+#                 latitude=row['Latitude'],
+#                 longitude=row['Longitude'],
+#                 cedente=row['Cedente'],
+#                 cm=row['CM'],
+#                 os_padtec=row['OS Padtec'],
+#                 lider=lider,
+#             )
+#             estacao.save()
 
 
 @csrf_exempt
