@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload de Tecnico</title>
+</head>
+<body>
+    <h1>Upload de Tecnico</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="myfile">Selecione um arquivo csv:</label>
+        <input type="file" id="myfile" name="myfile">
+        <br>
+        <input type="submit" value="Upload">
+    </form>
+</body>
+</html>
