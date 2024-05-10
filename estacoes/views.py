@@ -60,6 +60,8 @@ def import_estacoes(request):
             'message': 'Todas as operações de banco de dados foram concluídas.'
         })
     return render(request, 'import_estacao.html', {})
+
+@csrf_exempt
 def import_tecnicos(request):
     if request.method == 'POST' and 'myfile' in request.FILES:
         myfile = request.FILES['myfile']
