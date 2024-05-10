@@ -152,11 +152,14 @@ def aplica_desconto(ticket):
                 codigo_inteiro = texto[texto.index(
                     codigo_texto)+5:texto.index(codigo_texto)+11]
                 codigo = codigo_inteiro[1:-1]
-                fim = row[0]
-                fim = datetime.strptime(fim, '%d/%m/%Y %H:%M')
                 for desconto in reversed(resultados):
                     if codigo in desconto['codigo'] and desconto['fim'] is None and codigo_inteiro.startswith('#'):
+                        fim = row[0]
+                        fim = datetime.strptime(fim, '%d/%m/%Y %H:%M')
+                        print(codigo_inteiro)
                         desconto['fim'] = fim
+                        break
+
                 if codigo is not None:
                     ultimo_codigo = codigo
                 break
