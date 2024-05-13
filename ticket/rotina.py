@@ -142,7 +142,18 @@ def aplica_desconto(ticket):
                     # Crie um novo dicionário para este desconto
                     desconto = {'ticket': ticket, 'codigo': codigo, 'inicio': inicio,
                                 'fim': None, 'categoria': categoria, 'observacao': 'Desconto automático', 'aplicado': False}
-                    resultados.append(desconto)
+                    print(desconto)
+                    if codigo not in lista_automaticos:
+                        for j, next_row in tabela2.iloc[i+1:].iterrows():
+                            next_texto = next_row[4]
+                            # Verifica se existe algum código de abertura antes de um código de fechamento
+                            if any(codigo_abertura in next_texto for codigo_abertura in lista_abertura):
+                                break
+                            elif any(codigo_fechamento in next_texto for codigo_fechamento in lista_fechamento):
+                                resultados.append(desconto)
+                                break
+                    else:
+                        resultados.append(desconto)
 
                     ultimo_codigo = codigo
         for codigo_texto in lista_fechamento:
